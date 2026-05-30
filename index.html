@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa de la Sabiduría Budista | Dharma Interactivo</title>
+  <meta name="description" content="Explora el mapa conceptual del Dharma budista de forma interactiva. Descubre la conexión entre las Cuatro Nobles Verdades, las Tres Joyas, el Óctuple Sendero y las Paramitas con un diseño premium y fluido.">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="map-icon" aria-hidden="true">🪷</div>
+    <h1>Mapa de la Sabiduría Budista</h1>
+    <p class="subtitle">Explora los pilares del Dharma y sus conexiones profundas</p>
+  </header>
+
+  <!-- Interactive Map Section -->
+  <main class="map-viewport" id="mapViewport">
+    
+    <!-- SVG Canvas for connections -->
+    <svg class="connections-canvas" id="connectionsSvg" aria-hidden="true"></svg>
+
+    <!-- Map Nodes Layout -->
+    <div class="map-nodes">
+      
+      <!-- Las Tres Joyas (Top Left) -->
+      <section class="node-card node-joyas" data-node-id="joyas" id="node-joyas" tabindex="0" aria-label="Sección de Las Tres Joyas">
+        <h2 class="card-title">💎 Las Tres Joyas</h2>
+        <p class="card-subtitle">El refugio fundamental</p>
+        <div class="card-tags">
+          <span class="tag">Buda</span>
+          <span class="tag">Dharma</span>
+          <span class="tag">Sangha</span>
+        </div>
+      </section>
+
+      <!-- Las Tres Marcas de la Existencia (Top Right) -->
+      <section class="node-card node-marcas" data-node-id="marcas" id="node-marcas" tabindex="0" aria-label="Sección de Las Tres Marcas de la Existencia">
+        <h2 class="card-title">🌀 Las Tres Marcas</h2>
+        <p class="card-subtitle">Características de la existencia</p>
+        <div class="card-tags">
+          <span class="tag">Impermanencia (Anicca)</span>
+          <span class="tag">Insatisfacción (Dukkha)</span>
+          <span class="tag">No-yo (Anatta)</span>
+        </div>
+      </section>
+
+      <!-- Las Seis Paramitas (Middle Left) -->
+      <section class="node-card node-paramitas" data-node-id="paramitas" id="node-paramitas" tabindex="0" aria-label="Sección de Las Seis Paramitas">
+        <h2 class="card-title">✨ Las Seis Paramitas</h2>
+        <p class="card-subtitle">Perfecciones del Bodhisattva</p>
+        <div class="card-tags">
+          <span class="tag">Generosidad</span>
+          <span class="tag">Ética</span>
+          <span class="tag">Paciencia</span>
+          <span class="tag">Esfuerzo</span>
+          <span class="tag">Meditación</span>
+          <span class="tag">Sabiduría</span>
+        </div>
+      </section>
+
+      <!-- Cuatro Nobles Verdades (Center) -->
+      <div class="node-centro-container" data-node-id="centro" id="node-centro" tabindex="0" aria-label="Sección de Las Cuatro Nobles Verdades, centro del Dharma">
+        <div class="node-centro-inner">
+          <img src="buddha.png" alt="Buda Gautama en meditación" class="center-avatar">
+          <h2 class="center-title">4 Nobles Verdades</h2>
+          <p class="center-subtitle">El corazón del Dharma</p>
+        </div>
+      </div>
+
+      <!-- Las 4 Inconmensurables (Middle Right) -->
+      <section class="node-card node-inconm" data-node-id="inconm" id="node-inconm" tabindex="0" aria-label="Sección de Las Cuatro Inconmensurables">
+        <h2 class="card-title">💗 Inconmensurables</h2>
+        <p class="card-subtitle">Brahmaviharas — Moradas divinas</p>
+        <div class="card-tags">
+          <span class="tag">Amor bondadoso (Metta)</span>
+          <span class="tag">Compasión (Karuna)</span>
+          <span class="tag">Alegría empática (Mudita)</span>
+          <span class="tag">Ecuanimidad (Upekkha)</span>
+        </div>
+      </section>
+
+      <!-- El Óctuple Noble Sendero (Bottom Center) -->
+      <section class="node-card node-sendero" data-node-id="sendero" id="node-sendero" tabindex="0" aria-label="Sección de El Óctuple Noble Sendero">
+        <h2 class="card-title">🛤️ El Óctuple Sendero</h2>
+        <p class="card-subtitle">El camino a la liberación</p>
+        <div class="card-tags">
+          <span class="tag">① Visión</span>
+          <span class="tag">② Intención</span>
+          <span class="tag">③ Habla</span>
+          <span class="tag">④ Acción</span>
+          <span class="tag">⑤ Sustento</span>
+          <span class="tag">⑥ Esfuerzo</span>
+          <span class="tag">⑦ Atención</span>
+          <span class="tag">⑧ Concentración</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Relations Panel -->
+    <section class="relations-panel" aria-label="Relaciones conceptuales del mapa">
+      <h2 class="relations-title">⚡ Relaciones Clave</h2>
+      <div class="relations-grid">
+        
+        <div class="relation-card" data-relation-id="rel-sendero-paramitas" data-node-a="sendero" data-node-b="paramitas" tabindex="0">
+          <div class="relation-header" style="color: var(--color-sendero)">
+            <span>🛤️ Sendero ↔ ✨ Paramitas</span>
+          </div>
+          <p class="relation-desc">
+            Sila (pasos 3-5) ↔ Dana/Sila. Samadhi (6-8) ↔ Dhyana. Prajna (1-2) ↔ Prajna paramita. Caminos complementarios en Theravada y Mahayana.
+          </p>
+        </div>
+
+        <div class="relation-card" data-relation-id="rel-sendero-inconm" data-node-a="sendero" data-node-b="inconm" tabindex="0">
+          <div class="relation-header" style="color: var(--color-inconm)">
+            <span>🛤️ Sendero ↔ 💗 Inconmensurables</span>
+          </div>
+          <p class="relation-desc">
+            La intención correcta (paso 2) incluye buena voluntad y compasión (Metta y Karuna). Las inconmensurables le dan corazón y vivacidad al sendero.
+          </p>
+        </div>
+
+        <div class="relation-card" data-relation-id="rel-paramitas-inconm" data-node-a="paramitas" data-node-b="inconm" tabindex="0">
+          <div class="relation-header" style="color: var(--color-paramitas)">
+            <span>✨ Paramitas ↔ 💗 Inconmensurables</span>
+          </div>
+          <p class="relation-desc">
+            Dana nace del amor bondadoso (Metta). Kshanti se nutre de Karuna. Upekkha es el fruto maduro de la sabiduría (Prajna paramita).
+          </p>
+        </div>
+
+        <div class="relation-card" data-relation-id="rel-centro-joyas" data-node-a="centro" data-node-b="joyas" tabindex="0">
+          <div class="relation-header" style="color: var(--color-centro)">
+            <span>☸️ Verdades ↔ 💎 Las Tres Joyas</span>
+          </div>
+          <p class="relation-desc">
+            Las 4 Nobles Verdades son el núcleo del Dharma enseñado por el Buda, el cual es realizado y sostenido por la comunidad (Sangha).
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Details Modal -->
+    <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-content">
+        <button class="modal-close" id="modalClose" aria-label="Cerrar modal">✕</button>
+        <h2 class="modal-title" id="modalTitle">Título del Nodo</h2>
+        <p class="modal-subtitle" id="modalSubtitle">Subtítulo explicativo</p>
+        <div class="modal-body" id="modalBody">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>☸️ Haz clic en cualquier sección para ver detalles y contexto profundo. Desarrollado con armonía y claridad.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>
