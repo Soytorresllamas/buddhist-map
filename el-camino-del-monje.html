@@ -72,8 +72,9 @@
     background:rgba(8,4,1,.78);backdrop-filter:blur(4px);padding:1.5rem;z-index:5}
   .concept.show{display:flex;animation:fade .3s ease}
   .concept-card{
-    width:min(560px,100%);background:linear-gradient(160deg,rgba(30,18,7,.96),rgba(18,9,2,.96));
-    border:1px solid var(--accent,var(--gold));border-radius:16px;padding:1.6rem 1.7rem;
+    width:min(560px,100%);max-height:94%;overflow-y:auto;
+    background:linear-gradient(160deg,rgba(30,18,7,.96),rgba(18,9,2,.96));
+    border:1px solid var(--accent,var(--gold));border-radius:16px;padding:1.4rem 1.6rem;
     box-shadow:0 0 50px -8px var(--accent,var(--gold-glow));text-align:center}
   .concept-card .group-tag{display:inline-block;font-family:var(--font-serif);
      font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
@@ -91,6 +92,10 @@
   .concept-card .hint kbd{font-family:var(--font-body);background:rgba(212,168,67,.16);
      border:1px solid rgba(212,168,67,.4);border-radius:6px;padding:.1rem .5rem;
      color:var(--gold)}
+  .brahma-list{display:grid;gap:.45rem;margin:1rem auto 0;max-width:320px;text-align:left}
+  .brahma-list div{font-size:.95rem;padding:.4rem .8rem;border-radius:8px;
+     border:1px solid rgba(224,144,184,.35);background:rgba(224,144,184,.08)}
+  .brahma-list b{color:#e090b8}
 
   /* Start / end overlays */
   .overlay{position:absolute;inset:0;display:flex;flex-direction:column;
@@ -221,6 +226,9 @@
   }));
   const BODHI_X = WORLD - 70;
 
+  // Bonus heart that blooms after learning "Intención Correcta" (step idx 1)
+  const heart = { x: stations[1].x + 70, y: GROUND - 100, active:false, cooldown:false };
+
   // ---- Player ----
   const monk = {x:120, y:GROUND, vy:0, w:34, h:54, onGround:true, face:1, walk:0, speed:3.2};
   let camX = 0;
@@ -272,6 +280,25 @@
     }
   }
 
+  // Bonus panel: the Four Immeasurables, reached by jumping into the heart
+  function openBrahma(){
+    state = 'concept'; activeStation = null;
+    card.style.setProperty('--accent', '#e090b8');
+    document.getElementById('cGroup').textContent = 'Bonus · Corazón del sendero';
+    document.getElementById('cNum').textContent = '💗';
+    document.getElementById('cTitle').textContent = 'Las Cuatro Inconmensurables';
+    document.getElementById('cPali').textContent = 'Brahmaviharas — Moradas divinas';
+    document.getElementById('cText').innerHTML =
+      'La Intención Correcta florece en cuatro actitudes ilimitadas que dan corazón al sendero:' +
+      '<div class="brahma-list">' +
+      '<div><b>Metta</b> · Amor bondadoso</div>' +
+      '<div><b>Karuna</b> · Compasión</div>' +
+      '<div><b>Mudita</b> · Alegría empática</div>' +
+      '<div><b>Upekkha</b> · Ecuanimidad</div>' +
+      '</div>';
+    conceptEl.classList.add('show');
+  }
+
   // ---- Overlays ----
   const startOverlay = document.getElementById('startOverlay');
   const endOverlay = document.getElementById('endOverlay');
@@ -281,6 +308,7 @@
     monk.x = 120; monk.y = GROUND; monk.vy = 0; monk.face = 1;
     camX = 0; learnedCount = 0; activeStation = null;
     stations.forEach(s => { s.learned = false; s.glow = 0; });
+    heart.active = false; heart.cooldown = false;
     updateHud();
     state = 'play';
   }
@@ -301,7 +329,7 @@
       closeConcept(); return;
     }
     if(state === 'play' && (k === 'e' || k === 'enter')){
-      const near = stations.find(s => !s.learned && Math.abs(s.x - monk.x) < 46);
+      const near = stations.find(s => Math.abs(s.x - monk.x) < 46);
       if(near) openConcept(near);
     }
     if((state === 'start' || state === 'done') && k === 'enter'){
@@ -342,12 +370,21 @@
     // station glow + auto-open when stepping on an unlearned lotus
     stations.forEach(s => {
       const near = Math.abs(s.x - monk.x) < 46;
-      s.near = near && !s.learned;
+      s.near = near;
       if(s.learned) s.glow = Math.min(1, s.glow + .05);
       else s.glow = near ? Math.min(1, s.glow + .08) : Math.max(0, s.glow - .06);
     });
     const step = stations.find(s => !s.learned && Math.abs(s.x - monk.x) < 30);
     if(step) openConcept(step);
+
+    // Heart blooms once Intención Correcta is learned; jump into it to learn the Brahmaviharas
+    heart.active = stations[1].learned;
+    if(heart.active){
+      const dx = Math.abs(monk.x - heart.x);
+      const touching = dx < 26 && heart.y >= (monk.y - monk.h - 6) && heart.y <= (monk.y + 6);
+      if(touching && !heart.cooldown){ openBrahma(); heart.cooldown = true; }
+      if(!touching) heart.cooldown = false;
+    }
   }
 
   // ---- Drawing helpers ----
@@ -445,12 +482,14 @@
       const fy = -34 - (Math.sin(t*0.06 + st.idx)*3);
       ctx.fillStyle = hexA(g.color,.9);
       ctx.beginPath(); ctx.arc(0, fy, 3.2, 0, Math.PI*2); ctx.fill();
-    } else if(st.near){
-      // "press E" bubble
+    }
+    if(st.near){
+      const label = st.learned ? 'Repasar · E' : 'Pulsa E';
+      const w = st.learned ? 78 : 52;
       ctx.fillStyle = 'rgba(18,9,2,.85)';
-      roundRect(-26,-66,52,20,6); ctx.fill();
+      roundRect(-w/2,-66,w,20,6); ctx.fill();
       ctx.fillStyle = g.color; ctx.font = "600 12px 'Outfit',sans-serif";
-      ctx.textAlign = 'center'; ctx.fillText('Pulsa E', 0, -52);
+      ctx.textAlign = 'center'; ctx.fillText(label, 0, -52);
     }
 
     // step number under pedestal
@@ -483,6 +522,32 @@
         ctx.fill();
       }
     }
+    ctx.restore();
+  }
+
+  function drawHeart(x, y){
+    const bob = Math.sin(t*0.06) * 5;
+    ctx.save(); ctx.translate(x, y + bob);
+    // glow
+    const gl = ctx.createRadialGradient(0,0,2,0,0,36);
+    gl.addColorStop(0,'rgba(224,144,184,.6)'); gl.addColorStop(1,'rgba(224,144,184,0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0,0,36,0,Math.PI*2); ctx.fill();
+    // heart shape (centered)
+    const s = 22; ctx.translate(0,-s/2);
+    const grd = ctx.createLinearGradient(0,0,0,s);
+    grd.addColorStop(0,'#f0a8cc'); grd.addColorStop(1,'#d06ca0');
+    ctx.fillStyle = grd;
+    const top = s*0.3;
+    ctx.beginPath();
+    ctx.moveTo(0, top);
+    ctx.bezierCurveTo(0,0,-s/2,0,-s/2,top);
+    ctx.bezierCurveTo(-s/2,s*0.55,0,s*0.8,0,s);
+    ctx.bezierCurveTo(0,s*0.8,s/2,s*0.55,s/2,top);
+    ctx.bezierCurveTo(s/2,0,0,0,0,top);
+    ctx.closePath(); ctx.fill();
+    // shine
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.beginPath(); ctx.arc(-s*0.18, top+1, 2.4, 0, Math.PI*2); ctx.fill();
     ctx.restore();
   }
 
@@ -537,6 +602,15 @@
     ctx.save(); ctx.translate(-camX, 0);
     stations.forEach(s => { if(s.x > camX-80 && s.x < camX+W+80) drawLotus(s.x, GROUND, s); });
     drawBodhi(BODHI_X);
+    if(heart.active){
+      drawHeart(heart.x, heart.y);
+      if(state === 'play' && monk.onGround && Math.abs(monk.x - heart.x) < 72){
+        ctx.save(); ctx.translate(heart.x, GROUND - 150);
+        ctx.fillStyle = 'rgba(18,9,2,.85)'; roundRect(-30,-13,60,22,7); ctx.fill();
+        ctx.fillStyle = '#e090b8'; ctx.font = "600 12px 'Outfit',sans-serif";
+        ctx.textAlign = 'center'; ctx.fillText('Salta ↑', 0, 2); ctx.restore();
+      }
+    }
     drawMonk(monk.x, monk.y);
     ctx.restore();
   }
