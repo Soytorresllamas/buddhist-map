@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>OG Card Generator · Buddhist Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#0c0602;display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px;font-family:sans-serif}
+  canvas{width:600px;height:315px;border:1px solid #333;border-radius:8px}
+  .row{display:flex;gap:8px}
+  button{background:#d4a843;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="row">
+    <button onclick="renderCard('mapa')">Mapa</button>
+    <button onclick="renderCard('juego')">Juego</button>
+    <button onclick="renderCard('sendero')">Sendero</button>
+  </div>
+
+<script>
+const W = 1200, H = 630;
+const cv = document.getElementById('c');
+cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+
+const GOLD = '#d4a843', LIGHT = '#f0e6c8', MUTED = '#a08060';
+const COL = { prajna:'#d4a843', sila:'#7ed87e', samadhi:'#9090e0',
+              inconm:'#e090b8', joyas:'#d4d460', marcas:'#e09060', paramitas:'#9090e0' };
+const SITE = 'soytorresllamas.github.io/buddhist-map';
+
+function hexA(hex, a){
+  const h = hex.replace('#','');
+  return `rgba(${parseInt(h.substr(0,2),16)},${parseInt(h.substr(2,2),16)},${parseInt(h.substr(4,2),16)},${a})`;
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function bg(){
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#1c0f04'); g.addColorStop(.55,'#241405'); g.addColorStop(1,'#0c0602');
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  const rg = ctx.createRadialGradient(W/2,-60,40,W/2,-60,640);
+  rg.addColorStop(0,'rgba(122,79,26,.38)'); rg.addColorStop(1,'rgba(122,79,26,0)');
+  ctx.fillStyle = rg; ctx.fillRect(0,0,W,H);
+}
+function stars(){
+  let s = 987654321;
+  const rnd = () => { s = (s*16807) % 2147483647; return s/2147483647; };
+  ctx.fillStyle = 'rgba(240,230,200,.55)';
+  for(let i=0;i<90;i++){
+    const x = rnd()*W, y = rnd()*H*0.62;
+    ctx.globalAlpha = 0.18 + rnd()*0.5;
+    const r = rnd()*2 + 0.6; ctx.fillRect(x,y,r,r);
+  }
+  ctx.globalAlpha = 1;
+}
+function frame(){
+  ctx.strokeStyle = 'rgba(212,168,67,.45)'; ctx.lineWidth = 2;
+  roundRect(26,26,W-52,H-52,20); ctx.stroke();
+}
+function footer(){
+  ctx.fillStyle = MUTED; ctx.font = "500 24px 'Cinzel', serif";
+  ctx.textAlign = 'center'; ctx.letterSpacing = '2px';
+  ctx.fillText('☸  ' + SITE, W/2, H-58);
+  ctx.letterSpacing = '0px';
+}
+
+function lotus(x,y,scale,color,open){
+  open = open==null?1:open;
+  ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+  const gr = ctx.createRadialGradient(0,-8,2,0,-8,48);
+  gr.addColorStop(0,hexA(color,.5)); gr.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = gr; ctx.fillRect(-52,-58,104,82);
+  ctx.fillStyle = 'rgba(30,18,7,.9)';
+  ctx.beginPath(); ctx.ellipse(0,0,20,7,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = color;
+  for(let i=-2;i<=2;i++){
+    ctx.save(); ctx.rotate(i*0.42*open); ctx.translate(0,-6);
+    ctx.beginPath(); ctx.moveTo(0,0);
+    ctx.quadraticCurveTo(7,-18,0,-30); ctx.quadraticCurveTo(-7,-18,0,0);
+    ctx.fill(); ctx.restore();
+  }
+  ctx.fillStyle = '#fff4d0';
+  ctx.beginPath(); ctx.arc(0,-12,5,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function monk(x,y,scale){
+  ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.beginPath(); ctx.ellipse(0,2,20,6,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#caa15e'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-4,-14); ctx.lineTo(-5,0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4,-14); ctx.lineTo(5,0); ctx.stroke();
+  const robe = ctx.createLinearGradient(0,-46,0,-12);
+  robe.addColorStop(0,'#e8913f'); robe.addColorStop(1,'#c2611c');
+  ctx.fillStyle = robe;
+  ctx.beginPath(); ctx.moveTo(-13,-12); ctx.lineTo(-9,-44);
+  ctx.quadraticCurveTo(0,-52,9,-44); ctx.lineTo(13,-12);
+  ctx.quadraticCurveTo(0,-6,-13,-12); ctx.fill();
+  ctx.fillStyle = '#a94e14';
+  ctx.beginPath(); ctx.moveTo(-9,-30); ctx.lineTo(9,-42); ctx.lineTo(9,-37); ctx.lineTo(-9,-25); ctx.fill();
+  ctx.strokeStyle = '#caa15e'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(6,-40); ctx.lineTo(12,-26); ctx.stroke();
+  ctx.fillStyle = '#e8c08a';
+  ctx.beginPath(); ctx.arc(0,-52,9,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = hexA(GOLD,.5); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0,-54,13,0,Math.PI*2); ctx.stroke();
+  ctx.restore();
+}
+
+function heart(x,y,scale){
+  ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+  const gl = ctx.createRadialGradient(0,0,2,0,0,30);
+  gl.addColorStop(0,'rgba(224,144,184,.6)'); gl.addColorStop(1,'rgba(224,144,184,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0,0,30,0,Math.PI*2); ctx.fill();
+  const s = 22; ctx.translate(0,-s/2);
+  const grd = ctx.createLinearGradient(0,0,0,s);
+  grd.addColorStop(0,'#f0a8cc'); grd.addColorStop(1,'#d06ca0');
+  ctx.fillStyle = grd; const top = s*0.3;
+  ctx.beginPath(); ctx.moveTo(0,top);
+  ctx.bezierCurveTo(0,0,-s/2,0,-s/2,top);
+  ctx.bezierCurveTo(-s/2,s*0.55,0,s*0.8,0,s);
+  ctx.bezierCurveTo(0,s*0.8,s/2,s*0.55,s/2,top);
+  ctx.bezierCurveTo(s/2,0,0,0,0,top);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function hill(){
+  ctx.fillStyle = '#241606';
+  ctx.beginPath(); ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=60){ ctx.lineTo(x, 470 - Math.abs(Math.sin(x*0.004))*60); }
+  ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2e1c08';
+  ctx.beginPath(); ctx.moveTo(0,H);
+  for(let x=0;x<=W;x+=70){ ctx.lineTo(x, 510 - Math.abs(Math.sin(x*0.006+2))*40); }
+  ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+  const gr = ctx.createLinearGradient(0,520,0,H);
+  gr.addColorStop(0,'#3a240d'); gr.addColorStop(1,'#1a0e05');
+  ctx.fillStyle = gr; ctx.fillRect(0,520,W,H-520);
+  ctx.strokeStyle = 'rgba(212,168,67,.28)'; ctx.lineWidth = 3;
+  ctx.setLineDash([16,14]); ctx.beginPath(); ctx.moveTo(0,540); ctx.lineTo(W,540); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function chip(x,y,label,color){
+  ctx.font = "600 22px 'Outfit', sans-serif";
+  const w = ctx.measureText(label).width + 36;
+  ctx.fillStyle = hexA(color,.12);
+  ctx.strokeStyle = hexA(color,.5); ctx.lineWidth = 1.5;
+  roundRect(x-w/2, y-20, w, 40, 20); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y+1);
+  ctx.textBaseline = 'alphabetic';
+  return w;
+}
+function chipRow(cy, items){
+  ctx.font = "600 22px 'Outfit', sans-serif";
+  const gap = 18;
+  let total = 0;
+  const widths = items.map(it => ctx.measureText(it.t).width + 36);
+  total = widths.reduce((a,b)=>a+b,0) + gap*(items.length-1);
+  let x = W/2 - total/2;
+  items.forEach((it,i) => { chip(x+widths[i]/2, cy, it.t, it.c); x += widths[i] + gap; });
+}
+
+function title(lines, cy, size){
+  ctx.fillStyle = GOLD; ctx.textAlign = 'center';
+  ctx.font = `700 ${size}px 'Cinzel Decorative', serif`;
+  ctx.letterSpacing = '1px';
+  ctx.shadowColor = 'rgba(212,168,67,.4)'; ctx.shadowBlur = 24;
+  lines.forEach((ln,i) => ctx.fillText(ln, W/2, cy + i*(size+10)));
+  ctx.shadowBlur = 0; ctx.letterSpacing = '0px';
+}
+function subtitle(text, cy){
+  ctx.fillStyle = LIGHT; ctx.globalAlpha = .9; ctx.textAlign = 'center';
+  ctx.font = "400 28px 'Cinzel', serif";
+  ctx.fillText(text, W/2, cy); ctx.globalAlpha = 1;
+}
+
+// ---- Cards ----
+function cardMapa(){
+  bg(); stars();
+  lotus(150, 170, 1.5, COL.joyas);
+  lotus(W-150, 170, 1.5, COL.inconm);
+  // big central lotus emoji
+  ctx.textAlign = 'center'; ctx.font = "120px sans-serif";
+  ctx.fillText('🪷', W/2, 200);
+  title(['Mapa de la Sabiduría Budista'], 290, 62);
+  subtitle('Explora los pilares del Dharma y sus conexiones profundas', 345);
+  chipRow(430, [
+    {t:'Tres Joyas', c:COL.joyas},
+    {t:'Cuatro Verdades', c:COL.prajna},
+    {t:'Óctuple Sendero', c:COL.sila},
+    {t:'Paramitas', c:COL.paramitas},
+    {t:'Inconmensurables', c:COL.inconm}
+  ]);
+  footer(); frame();
+}
+
+function cardJuego(){
+  bg(); stars();
+  // sun disc
+  ctx.fillStyle = 'rgba(212,168,67,.16)';
+  ctx.beginPath(); ctx.arc(W-200, 150, 70, 0, Math.PI*2); ctx.fill();
+  hill();
+  // path of lotuses (gold, green, blue) + heart + monk + bodhi
+  lotus(250, 540, 1.5, COL.prajna);
+  lotus(520, 540, 1.5, COL.sila);
+  lotus(800, 540, 1.5, COL.samadhi);
+  heart(660, 430, 1.6);
+  monk(380, 540, 1.7);
+  // bodhi hint
+  ctx.save(); ctx.translate(W-150, 540);
+  ctx.fillStyle = '#5a3a18'; ctx.fillRect(-8,-90,16,90);
+  const cg = ctx.createRadialGradient(0,-130,10,0,-130,90);
+  cg.addColorStop(0,'rgba(212,168,67,.85)'); cg.addColorStop(1,'rgba(122,79,26,.3)');
+  ctx.fillStyle = cg;
+  [[0,-140,58],[-46,-115,42],[46,-118,44],[-24,-165,38],[28,-162,36]].forEach(([dx,dy,r])=>{
+    ctx.beginPath(); ctx.arc(dx,dy,r,0,Math.PI*2); ctx.fill(); });
+  ctx.restore();
+  // text
+  title(['El Camino del Monje'], 150, 70);
+  subtitle('Recorre el Óctuple Noble Sendero · un juego interactivo', 205);
+  // play badge
+  ctx.font = "600 26px 'Cinzel', serif";
+  const bw = ctx.measureText('▶  JUGAR').width + 54;
+  const bx = W/2 - bw/2, by = 240;
+  const bgr = ctx.createLinearGradient(bx,by,bx,by+52);
+  bgr.addColorStop(0,'#f0d488'); bgr.addColorStop(1,GOLD);
+  ctx.fillStyle = bgr; roundRect(bx,by,bw,52,26); ctx.fill();
+  ctx.fillStyle = '#1a0e05'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.letterSpacing = '2px'; ctx.fillText('▶  JUGAR', W/2, by+27);
+  ctx.letterSpacing = '0px'; ctx.textBaseline = 'alphabetic';
+  footer(); frame();
+}
+
+function cardSendero(){
+  bg(); stars();
+  title(['El Óctuple Noble Sendero'], 150, 62);
+  subtitle('Guía interactiva de los ocho pasos hacia la liberación', 205);
+  // 8 lotuses in a row, grouped by color
+  const groups = ['prajna','prajna','sila','sila','sila','samadhi','samadhi','samadhi'];
+  const nums = ['①','②','③','④','⑤','⑥','⑦','⑧'];
+  const n = 8, gap = (W-240)/(n-1);
+  for(let i=0;i<n;i++){
+    const x = 120 + i*gap, y = 380;
+    lotus(x, y, 1.25, COL[groups[i]]);
+    ctx.fillStyle = COL[groups[i]]; ctx.textAlign = 'center';
+    ctx.font = "700 26px 'Cinzel', serif";
+    ctx.fillText(nums[i], x, y+44);
+  }
+  chipRow(470, [
+    {t:'Sabiduría', c:COL.prajna},
+    {t:'Ética', c:COL.sila},
+    {t:'Concentración', c:COL.samadhi}
+  ]);
+  footer(); frame();
+}
+
+const CARDS = { mapa:cardMapa, juego:cardJuego, sendero:cardSendero };
+function renderCard(name){ (CARDS[name]||cardMapa)(); window.__cardRendered = name; }
+function getPNG(){ return cv.toDataURL('image/png'); }
+window.renderCard = renderCard; window.getPNG = getPNG;
+
+// auto-render from ?card= once fonts are ready
+const params = new URLSearchParams(location.search);
+const want = params.get('card') || 'mapa';
+window.__ogReady = false;
+document.fonts.load("700 62px 'Cinzel Decorative'")
+  .then(() => document.fonts.load("400 28px 'Cinzel'"))
+  .then(() => document.fonts.load("600 22px 'Outfit'"))
+  .then(() => document.fonts.ready)
+  .then(() => { renderCard(want); window.__ogReady = true; });
+</script>
+</body>
+</html>
