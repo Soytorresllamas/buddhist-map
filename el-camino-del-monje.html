@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Camino del Monje | Juego del Óctuple Sendero</title>
+<meta name="description" content="Un pequeño videojuego donde un monje recorre el Óctuple Noble Sendero, aprendiendo cada uno de sus ocho pasos hasta alcanzar la iluminación.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@400;600;700&family=Lora:ital@0;1&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-primary:#120902; --bg-secondary:#1a0e05;
+    --gold:#d4a843; --gold-glow:rgba(212,168,67,.35);
+    --text-light:#f0e6c8; --text-muted:#a08060;
+    --c-prajna:#d4a843;   /* Sabiduría */
+    --c-sila:#7ed87e;     /* Ética */
+    --c-samadhi:#9090e0;  /* Concentración */
+    --font-title:'Cinzel Decorative',Georgia,serif;
+    --font-serif:'Cinzel',Georgia,serif;
+    --font-body:'Outfit',sans-serif;
+    --font-quote:'Lora',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg-primary);
+    background-image:
+      radial-gradient(circle at 50% 15%,rgba(122,79,26,.18) 0%,transparent 60%),
+      radial-gradient(circle at 12% 85%,rgba(26,26,58,.12) 0%,transparent 50%);
+    color:var(--text-light);font-family:var(--font-body);
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;
+    padding:1.2rem 1rem 2rem;overflow-x:hidden;
+  }
+  header{text-align:center;margin-bottom:1rem}
+  header .icon{font-size:2rem}
+  h1{font-family:var(--font-title);font-size:clamp(1.4rem,4vw,2.2rem);
+     color:var(--gold);letter-spacing:.04em;text-shadow:0 0 24px var(--gold-glow)}
+  .subtitle{font-family:var(--font-serif);color:var(--text-muted);
+     font-size:.95rem;margin-top:.25rem}
+
+  .stage{
+    position:relative;width:min(960px,100%);
+    border:1px solid rgba(212,168,67,.25);border-radius:16px;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.55),inset 0 0 80px rgba(0,0,0,.4);
+  }
+  canvas{display:block;width:100%;height:auto;background:#0c0602;touch-action:none}
+
+  /* HUD */
+  .hud{position:absolute;top:12px;left:12px;right:12px;display:flex;
+       justify-content:space-between;align-items:flex-start;gap:12px;
+       pointer-events:none;font-family:var(--font-serif)}
+  .hud .step-name{
+    background:rgba(18,9,2,.72);border:1px solid rgba(212,168,67,.3);
+    border-radius:10px;padding:.45rem .8rem;backdrop-filter:blur(6px);
+    max-width:60%}
+  .hud .step-name .kicker{font-size:.62rem;letter-spacing:.18em;
+     text-transform:uppercase;color:var(--text-muted)}
+  .hud .step-name .label{font-size:1rem;color:var(--gold);font-weight:600}
+  .hud .progress{
+    background:rgba(18,9,2,.72);border:1px solid rgba(212,168,67,.3);
+    border-radius:10px;padding:.45rem .7rem;backdrop-filter:blur(6px);text-align:right}
+  .hud .progress .count{font-size:1.1rem;color:var(--gold);font-weight:700}
+  .lotus-row{display:flex;gap:4px;margin-top:5px;justify-content:flex-end}
+  .lotus-row .dot{width:11px;height:11px;border-radius:50%;
+     border:1px solid rgba(240,230,200,.35);background:transparent;transition:.3s}
+  .lotus-row .dot.on{background:var(--gold);box-shadow:0 0 8px var(--gold);
+     border-color:var(--gold)}
+
+  /* Concept panel */
+  .concept{
+    position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+    background:rgba(8,4,1,.78);backdrop-filter:blur(4px);padding:1.5rem;z-index:5}
+  .concept.show{display:flex;animation:fade .3s ease}
+  .concept-card{
+    width:min(560px,100%);background:linear-gradient(160deg,rgba(30,18,7,.96),rgba(18,9,2,.96));
+    border:1px solid var(--accent,var(--gold));border-radius:16px;padding:1.6rem 1.7rem;
+    box-shadow:0 0 50px -8px var(--accent,var(--gold-glow));text-align:center}
+  .concept-card .group-tag{display:inline-block;font-family:var(--font-serif);
+     font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;
+     color:var(--accent,var(--gold));border:1px solid var(--accent,var(--gold));
+     border-radius:20px;padding:.2rem .8rem;margin-bottom:.9rem;opacity:.9}
+  .concept-card .num{font-family:var(--font-title);font-size:2.4rem;
+     color:var(--accent,var(--gold));line-height:1}
+  .concept-card h2{font-family:var(--font-serif);font-size:1.45rem;margin:.4rem 0 .1rem;
+     color:var(--text-light)}
+  .concept-card .pali{font-family:var(--font-quote);font-style:italic;
+     color:var(--text-muted);margin-bottom:.9rem;font-size:.95rem}
+  .concept-card p{font-size:1rem;line-height:1.65;color:var(--text-light);opacity:.92}
+  .concept-card .hint{margin-top:1.3rem;font-family:var(--font-serif);
+     font-size:.82rem;color:var(--text-muted)}
+  .concept-card .hint kbd{font-family:var(--font-body);background:rgba(212,168,67,.16);
+     border:1px solid rgba(212,168,67,.4);border-radius:6px;padding:.1rem .5rem;
+     color:var(--gold)}
+
+  /* Start / end overlays */
+  .overlay{position:absolute;inset:0;display:flex;flex-direction:column;
+     align-items:center;justify-content:center;text-align:center;padding:2rem;z-index:6;
+     background:radial-gradient(circle at 50% 40%,rgba(122,79,26,.25),rgba(8,4,1,.92))}
+  .overlay.hidden{display:none}
+  .overlay .big{font-size:2.6rem;margin-bottom:.6rem}
+  .overlay h2{font-family:var(--font-title);font-size:clamp(1.4rem,4vw,2rem);
+     color:var(--gold);margin-bottom:.7rem;text-shadow:0 0 24px var(--gold-glow)}
+  .overlay p{max-width:460px;font-family:var(--font-quote);line-height:1.7;
+     color:var(--text-light);opacity:.9;margin-bottom:1.4rem}
+  .btn{font-family:var(--font-serif);font-size:1rem;letter-spacing:.05em;
+     color:#1a0e05;background:linear-gradient(135deg,#f0d488,var(--gold));
+     border:none;border-radius:30px;padding:.7rem 1.8rem;cursor:pointer;
+     box-shadow:0 8px 26px -6px var(--gold-glow);transition:transform .15s,box-shadow .15s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px -6px var(--gold)}
+
+  .controls{margin-top:1rem;font-family:var(--font-serif);color:var(--text-muted);
+     font-size:.85rem;text-align:center;line-height:1.9}
+  .controls kbd{font-family:var(--font-body);background:rgba(212,168,67,.12);
+     border:1px solid rgba(212,168,67,.35);border-radius:6px;padding:.12rem .5rem;
+     color:var(--gold);margin:0 .15rem}
+  .footer{margin-top:1.1rem;font-size:.8rem;color:var(--text-muted);text-align:center}
+  .footer a{color:var(--gold);text-decoration:none}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+  <header>
+    <div class="icon">🧘</div>
+    <h1>El Camino del Monje</h1>
+    <p class="subtitle">Recorre el Óctuple Noble Sendero, paso a paso</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="game" width="960" height="420"></canvas>
+
+    <!-- HUD -->
+    <div class="hud">
+      <div class="step-name">
+        <div class="kicker">Próximo paso</div>
+        <div class="label" id="hudStep">Visión Correcta</div>
+      </div>
+      <div class="progress">
+        <span class="count"><span id="hudCount">0</span> / 8</span>
+        <div class="lotus-row" id="lotusRow"></div>
+      </div>
+    </div>
+
+    <!-- Concept panel -->
+    <div class="concept" id="concept">
+      <div class="concept-card" id="conceptCard">
+        <span class="group-tag" id="cGroup">Sabiduría</span>
+        <div class="num" id="cNum">①</div>
+        <h2 id="cTitle">Visión Correcta</h2>
+        <div class="pali" id="cPali">Sammā Diṭṭhi</div>
+        <p id="cText">…</p>
+        <div class="hint">Pulsa <kbd>Enter</kbd> para continuar el camino</div>
+      </div>
+    </div>
+
+    <!-- Start overlay -->
+    <div class="overlay" id="startOverlay">
+      <div class="big">🪷</div>
+      <h2>El Camino del Monje</h2>
+      <p>Un monje emprende el Óctuple Sendero. Camina hacia la derecha y detente en cada loto de luz para aprender uno de los ocho pasos. Cuando reúnas los ocho, alcanzarás la iluminación.</p>
+      <button class="btn" id="startBtn">Comenzar el camino</button>
+    </div>
+
+    <!-- End overlay -->
+    <div class="overlay hidden" id="endOverlay">
+      <div class="big">☸️</div>
+      <h2>Has alcanzado el Nirvana</h2>
+      <p id="endText">El monje ha completado el Óctuple Sendero: Sabiduría, Ética y Concentración en perfecta armonía. La llama del sufrimiento se ha apagado.</p>
+      <button class="btn" id="restartBtn">Caminar de nuevo</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <strong style="color:var(--gold)">Controles:</strong><br>
+    <kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> moverse &nbsp;·&nbsp;
+    <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar &nbsp;·&nbsp;
+    <kbd>E</kbd> / <kbd>Enter</kbd> aprender en el loto
+  </div>
+
+  <div class="footer">
+    Parte del <a href="index.html">Mapa de la Sabiduría Budista</a> ·
+    <a href="octuple-noble-sendero.html">Guía del Óctuple Sendero</a>
+  </div>
+
+<script>
+(() => {
+  const cv = document.getElementById('game');
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  const GROUND = H - 70;
+
+  // ---- Los ocho pasos del sendero ----
+  const GROUPS = {
+    prajna:  {name:'Sabiduría',     color:'#d4a843'},
+    sila:    {name:'Ética',         color:'#7ed87e'},
+    samadhi: {name:'Concentración', color:'#9090e0'}
+  };
+  const STEPS = [
+    {n:'①',g:'prajna', t:'Visión Correcta',        p:'Sammā Diṭṭhi',
+     d:'Comprender las Cuatro Nobles Verdades y ver la realidad tal como es: impermanente, insatisfactoria y sin un yo fijo.'},
+    {n:'②',g:'prajna', t:'Intención Correcta',     p:'Sammā Saṅkappa',
+     d:'Cultivar la renuncia, la buena voluntad y la inofensividad. Es el corazón que orienta cada paso del camino.'},
+    {n:'③',g:'sila',   t:'Habla Correcta',         p:'Sammā Vācā',
+     d:'No mentir, no calumniar, no hablar con dureza ni frivolidad. Palabras veraces, amables y oportunas.'},
+    {n:'④',g:'sila',   t:'Acción Correcta',        p:'Sammā Kammanta',
+     d:'No matar, no robar, no dañar. Obrar con integridad ética (Sīla) hacia todos los seres.'},
+    {n:'⑤',g:'sila',   t:'Sustento Correcto',      p:'Sammā Ājīva',
+     d:'Ganarse la vida sin causar daño: un trabajo honesto que no explote ni perjudique a otros seres.'},
+    {n:'⑥',g:'samadhi',t:'Esfuerzo Correcto',      p:'Sammā Vāyāma',
+     d:'Cultivar lo sano y abandonar lo dañino. La energía diligente que sostiene la práctica día a día.'},
+    {n:'⑦',g:'samadhi',t:'Atención Correcta',      p:'Sammā Sati',
+     d:'Mindfulness: presencia plena y serena del cuerpo, las sensaciones, la mente y los fenómenos.'},
+    {n:'⑧',g:'samadhi',t:'Concentración Correcta', p:'Sammā Samādhi',
+     d:'Unificar la mente en quietud luminosa (los jhānas). La calma profunda donde madura la sabiduría.'}
+  ];
+
+  // World layout: stations spread along a long path
+  const WORLD = 2600;
+  const stations = STEPS.map((s, i) => ({
+    x: 360 + i * ((WORLD - 520) / (STEPS.length - 1)),
+    learned: false, glow: 0, step: s, idx: i
+  }));
+  const BODHI_X = WORLD - 70;
+
+  // ---- Player ----
+  const monk = {x:120, y:GROUND, vy:0, w:34, h:54, onGround:true, face:1, walk:0, speed:3.2};
+  let camX = 0;
+  const keys = {};
+  let state = 'start';      // start | play | concept | done
+  let activeStation = null;
+  let learnedCount = 0;
+  let t = 0;
+
+  // ---- HUD elements ----
+  const hudStep = document.getElementById('hudStep');
+  const hudCount = document.getElementById('hudCount');
+  const lotusRow = document.getElementById('lotusRow');
+  STEPS.forEach(() => {
+    const d = document.createElement('div'); d.className = 'dot'; lotusRow.appendChild(d);
+  });
+  const dots = [...lotusRow.children];
+
+  function updateHud(){
+    hudCount.textContent = learnedCount;
+    const next = stations.find(s => !s.learned);
+    hudStep.textContent = next ? next.step.t : '¡Sendero completo!';
+    dots.forEach((d,i)=> d.classList.toggle('on', stations[i].learned));
+  }
+
+  // ---- Concept panel ----
+  const conceptEl = document.getElementById('concept');
+  const card = document.getElementById('conceptCard');
+  function openConcept(st){
+    state = 'concept'; activeStation = st;
+    const s = st.step, g = GROUPS[s.g];
+    card.style.setProperty('--accent', g.color);
+    document.getElementById('cGroup').textContent = g.name;
+    document.getElementById('cNum').textContent = s.n;
+    document.getElementById('cTitle').textContent = s.t;
+    document.getElementById('cPali').textContent = s.p;
+    document.getElementById('cText').textContent = s.d;
+    conceptEl.classList.add('show');
+  }
+  function closeConcept(){
+    conceptEl.classList.remove('show');
+    if(activeStation && !activeStation.learned){
+      activeStation.learned = true; learnedCount++; updateHud();
+    }
+    activeStation = null;
+    state = 'play';
+    if(learnedCount === STEPS.length){
+      setTimeout(endGame, 400);
+    }
+  }
+
+  // ---- Overlays ----
+  const startOverlay = document.getElementById('startOverlay');
+  const endOverlay = document.getElementById('endOverlay');
+  function startGame(){
+    startOverlay.classList.add('hidden');
+    endOverlay.classList.add('hidden');
+    monk.x = 120; monk.y = GROUND; monk.vy = 0; monk.face = 1;
+    camX = 0; learnedCount = 0; activeStation = null;
+    stations.forEach(s => { s.learned = false; s.glow = 0; });
+    updateHud();
+    state = 'play';
+  }
+  function endGame(){
+    state = 'done';
+    endOverlay.classList.remove('hidden');
+  }
+  document.getElementById('startBtn').onclick = startGame;
+  document.getElementById('restartBtn').onclick = startGame;
+
+  // ---- Input ----
+  addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if(['arrowleft','arrowright','arrowup',' ','a','d','w'].includes(k)) e.preventDefault();
+    keys[k] = true;
+
+    if(state === 'concept' && (k === 'enter' || k === 'e' || k === ' ' || k === 'escape')){
+      closeConcept(); return;
+    }
+    if(state === 'play' && (k === 'e' || k === 'enter')){
+      const near = stations.find(s => !s.learned && Math.abs(s.x - monk.x) < 46);
+      if(near) openConcept(near);
+    }
+    if((state === 'start' || state === 'done') && k === 'enter'){
+      startGame();
+    }
+  });
+  addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  // ---- Update ----
+  function update(){
+    t++;
+    if(state !== 'play'){
+      stations.forEach(s => { if(s.learned) s.glow = Math.min(1, s.glow + .05); });
+      return;
+    }
+
+    const left = keys['arrowleft'] || keys['a'];
+    const right = keys['arrowright'] || keys['d'];
+    let moving = false;
+    if(left){ monk.x -= monk.speed; monk.face = -1; moving = true; }
+    if(right){ monk.x += monk.speed; monk.face = 1; moving = true; }
+    monk.x = Math.max(40, Math.min(BODHI_X - 10, monk.x));
+    monk.walk = moving ? (monk.walk + .25) : 0;
+
+    // jump
+    if((keys[' '] || keys['arrowup'] || keys['w']) && monk.onGround){
+      monk.vy = -10.5; monk.onGround = false;
+    }
+    monk.vy += 0.55;
+    monk.y += monk.vy;
+    if(monk.y >= GROUND){ monk.y = GROUND; monk.vy = 0; monk.onGround = true; }
+
+    // camera follows
+    const target = monk.x - W * 0.38;
+    camX += (target - camX) * 0.08;
+    camX = Math.max(0, Math.min(WORLD - W, camX));
+
+    // station glow + auto-open when stepping on an unlearned lotus
+    stations.forEach(s => {
+      const near = Math.abs(s.x - monk.x) < 46;
+      s.near = near && !s.learned;
+      if(s.learned) s.glow = Math.min(1, s.glow + .05);
+      else s.glow = near ? Math.min(1, s.glow + .08) : Math.max(0, s.glow - .06);
+    });
+    const step = stations.find(s => !s.learned && Math.abs(s.x - monk.x) < 30);
+    if(step) openConcept(step);
+  }
+
+  // ---- Drawing helpers ----
+  function mountains(off, base, h, color){
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, GROUND);
+    for(let x = -100; x <= W + 100; x += 80){
+      const wx = x + off;
+      const y = base - Math.abs(Math.sin(wx * 0.004)) * h;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, GROUND); ctx.closePath(); ctx.fill();
+  }
+
+  function drawMonk(px, py){
+    const f = monk.face;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.scale(f, 1);
+    const swing = Math.sin(monk.walk) * 6;
+
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,.35)';
+    ctx.beginPath(); ctx.ellipse(0, 2, 18, 5, 0, 0, Math.PI*2); ctx.fill();
+
+    // legs
+    ctx.strokeStyle = '#caa15e'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-4,-14); ctx.lineTo(-4 + swing*0.4, 0); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(4,-14);  ctx.lineTo(4 - swing*0.4, 0);  ctx.stroke();
+
+    // robe (orange)
+    const robe = ctx.createLinearGradient(0,-46,0,-12);
+    robe.addColorStop(0,'#e8913f'); robe.addColorStop(1,'#c2611c');
+    ctx.fillStyle = robe;
+    ctx.beginPath();
+    ctx.moveTo(-13,-12); ctx.lineTo(-9,-44);
+    ctx.quadraticCurveTo(0,-52,9,-44); ctx.lineTo(13,-12);
+    ctx.quadraticCurveTo(0,-6,-13,-12); ctx.fill();
+    // sash
+    ctx.fillStyle = '#a94e14';
+    ctx.beginPath(); ctx.moveTo(-9,-30); ctx.lineTo(9,-42);
+    ctx.lineTo(9,-37); ctx.lineTo(-9,-25); ctx.fill();
+
+    // arm
+    ctx.strokeStyle = '#caa15e'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(6,-40); ctx.lineTo(11 + swing*0.3,-26); ctx.stroke();
+
+    // head
+    ctx.fillStyle = '#e8c08a';
+    ctx.beginPath(); ctx.arc(0,-52,9,0,Math.PI*2); ctx.fill();
+    // serene face
+    ctx.fillStyle = '#5a3a18';
+    ctx.beginPath(); ctx.arc(3,-53,1.1,0,Math.PI*2); ctx.fill();
+    // halo when carrying wisdom
+    if(learnedCount>0){
+      ctx.strokeStyle = `rgba(212,168,67,${0.25 + 0.06*learnedCount})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0,-54, 13 + Math.sin(t*0.08)*1.2, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawLotus(x, y, st){
+    const g = GROUPS[st.step.g];
+    const pulse = st.learned ? 1 : (0.55 + st.glow * 0.45);
+    ctx.save();
+    ctx.translate(x, y);
+
+    // pedestal glow
+    const grd = ctx.createRadialGradient(0,-6,2,0,-6,46);
+    grd.addColorStop(0, hexA(g.color, st.learned ? .5 : .18*pulse));
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(-50,-56,100,80);
+
+    // pedestal
+    ctx.fillStyle = 'rgba(30,18,7,.9)';
+    ctx.beginPath(); ctx.ellipse(0,0,20,7,0,0,Math.PI*2); ctx.fill();
+
+    // lotus petals
+    const open = st.learned ? 1 : (0.6 + st.glow*0.4);
+    ctx.fillStyle = st.learned ? g.color : hexA(g.color, .35 + .4*pulse);
+    for(let i=-2;i<=2;i++){
+      ctx.save(); ctx.rotate(i*0.42*open); ctx.translate(0,-6);
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.quadraticCurveTo(7,-18,0,-30);
+      ctx.quadraticCurveTo(-7,-18,0,0); ctx.fill();
+      ctx.restore();
+    }
+    // center
+    ctx.fillStyle = st.learned ? '#fff4d0' : hexA('#f0e6c8', .5);
+    ctx.beginPath(); ctx.arc(0,-12, st.learned ? 5 : 4, 0, Math.PI*2); ctx.fill();
+
+    if(st.learned){
+      const fy = -34 - (Math.sin(t*0.06 + st.idx)*3);
+      ctx.fillStyle = hexA(g.color,.9);
+      ctx.beginPath(); ctx.arc(0, fy, 3.2, 0, Math.PI*2); ctx.fill();
+    } else if(st.near){
+      // "press E" bubble
+      ctx.fillStyle = 'rgba(18,9,2,.85)';
+      roundRect(-26,-66,52,20,6); ctx.fill();
+      ctx.fillStyle = g.color; ctx.font = "600 12px 'Outfit',sans-serif";
+      ctx.textAlign = 'center'; ctx.fillText('Pulsa E', 0, -52);
+    }
+
+    // step number under pedestal
+    ctx.fillStyle = st.learned ? g.color : 'rgba(160,128,96,.7)';
+    ctx.font = "700 16px 'Cinzel',serif"; ctx.textAlign = 'center';
+    ctx.fillText(st.step.n, 0, 22);
+    ctx.restore();
+  }
+
+  function drawBodhi(x){
+    ctx.save(); ctx.translate(x, GROUND);
+    const done = learnedCount === STEPS.length;
+    // trunk
+    ctx.fillStyle = '#5a3a18';
+    ctx.fillRect(-7, -70, 14, 70);
+    // canopy
+    const grd = ctx.createRadialGradient(0,-100,10,0,-100,80);
+    grd.addColorStop(0, done ? 'rgba(212,168,67,.95)' : 'rgba(126,216,126,.85)');
+    grd.addColorStop(1, done ? 'rgba(122,79,26,.5)' : 'rgba(40,90,40,.5)');
+    ctx.fillStyle = grd;
+    for(const [dx,dy,r] of [[0,-110,52],[-40,-90,38],[40,-92,40],[-20,-130,34],[24,-128,32]]){
+      ctx.beginPath(); ctx.arc(dx,dy,r + (done?Math.sin(t*0.05)*2:0),0,Math.PI*2); ctx.fill();
+    }
+    if(done){
+      ctx.fillStyle = 'rgba(255,244,208,.9)';
+      for(let i=0;i<10;i++){
+        const a = t*0.02 + i; const rr = 70 + Math.sin(t*0.04+i)*8;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a)*rr, -100 + Math.sin(a)*rr*0.6, 2, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  // utils
+  function hexA(hex, a){
+    const h = hex.replace('#',''); const r=parseInt(h.substr(0,2),16),
+      g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16);
+    return `rgba(${r},${g},${b},${a})`;
+  }
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+
+  // ---- Render ----
+  function render(){
+    // sky
+    const sky = ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'#1c0f04'); sky.addColorStop(.55,'#241405'); sky.addColorStop(1,'#0c0602');
+    ctx.fillStyle = sky; ctx.fillRect(0,0,W,H);
+
+    // stars
+    ctx.fillStyle = 'rgba(240,230,200,.5)';
+    for(let i=0;i<40;i++){
+      const sx = ((i*173) - camX*0.2) % W; const x = sx<0?sx+W:sx;
+      const y = (i*53)%180 + 14;
+      ctx.globalAlpha = 0.3 + 0.3*Math.sin(t*0.03+i);
+      ctx.fillRect(x, y, 1.6, 1.6);
+    }
+    ctx.globalAlpha = 1;
+
+    // sun/moon disc
+    ctx.fillStyle = 'rgba(212,168,67,.18)';
+    ctx.beginPath(); ctx.arc(W*0.78, 90, 46, 0, Math.PI*2); ctx.fill();
+
+    // parallax mountains
+    mountains(-camX*0.25, GROUND-40, 120, '#241606');
+    mountains(-camX*0.5,  GROUND-10, 90,  '#2e1c08');
+
+    // ground
+    const gr = ctx.createLinearGradient(0,GROUND,0,H);
+    gr.addColorStop(0,'#3a240d'); gr.addColorStop(1,'#1a0e05');
+    ctx.fillStyle = gr; ctx.fillRect(0,GROUND,W,H-GROUND);
+    // path line
+    ctx.strokeStyle = 'rgba(212,168,67,.25)'; ctx.lineWidth = 3;
+    ctx.setLineDash([14,12]); ctx.beginPath();
+    ctx.moveTo(0,GROUND+14); ctx.lineTo(W,GROUND+14); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // world objects (camera-shifted)
+    ctx.save(); ctx.translate(-camX, 0);
+    stations.forEach(s => { if(s.x > camX-80 && s.x < camX+W+80) drawLotus(s.x, GROUND, s); });
+    drawBodhi(BODHI_X);
+    drawMonk(monk.x, monk.y);
+    ctx.restore();
+  }
+
+  function loop(){ update(); render(); requestAnimationFrame(loop); }
+  updateHud(); loop();
+})();
+</script>
+</body>
+</html>
