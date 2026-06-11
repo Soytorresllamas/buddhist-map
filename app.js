@@ -34,7 +34,8 @@ const POPUPS = {
         ["7. Atención correcta (Sati):", "Mindfulness del cuerpo, sensaciones, mente y objetos mentales."],
         ["8. Concentración correcta:", "Los cuatro jhanas — estados de absorción meditativa."]
       ]
-    ]
+    ],
+    link: { href: "octuple-noble-sendero.html", label: "📖 Recorre la guía completa del Óctuple Sendero →" }
   },
   paramitas: {
     title: "✨ Las Seis Paramitas",
@@ -201,7 +202,17 @@ function openModal(id) {
       body.appendChild(ul);
     }
   });
-  
+
+  // Optional contextual link to a deeper resource
+  if (d.link) {
+    const a = document.createElement("a");
+    a.className = "modal-link";
+    a.href = d.link.href;
+    a.textContent = d.link.label;
+    a.style.setProperty("--link-color", d.color);
+    body.appendChild(a);
+  }
+
   // Open with class transition
   overlay.classList.add("open");
 }

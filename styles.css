@@ -356,6 +356,52 @@ h1 {
   border-color: rgba(126, 216, 126, 0.25);
 }
 
+/* Contextual link inside the Óctuple Sendero card */
+.card-link {
+  display: block;
+  margin-top: 0.9rem;
+  padding: 0.55rem 0.9rem;
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-sendero);
+  background: rgba(126, 216, 126, 0.1);
+  border: 1px solid rgba(126, 216, 126, 0.35);
+  border-radius: 10px;
+  transition: background var(--transition-fast), transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.card-link:hover,
+.card-link:focus {
+  background: rgba(126, 216, 126, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(126, 216, 126, 0.22);
+  outline: none;
+}
+
+/* Contextual link rendered at the bottom of a detail modal */
+.modal-link {
+  display: block;
+  margin-top: 1.5rem;
+  padding: 0.7rem 1rem;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  text-align: center;
+  text-decoration: none;
+  color: var(--bg-primary);
+  background: var(--link-color, var(--color-gold));
+  border-radius: 12px;
+  font-weight: 600;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.modal-link:hover,
+.modal-link:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -6px var(--link-color, var(--color-gold));
+  outline: none;
+}
+
 /* Center Node Special Style */
 .node-centro-container {
   display: flex;
