@@ -106,6 +106,29 @@ h1 {
   color: var(--color-text-muted);
 }
 
+.play-cta {
+  display: inline-block;
+  margin-top: 1.25rem;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: #1a0e05;
+  background: linear-gradient(135deg, #f0d488, var(--color-gold));
+  border: 1px solid rgba(212, 168, 67, 0.6);
+  border-radius: 30px;
+  padding: 0.65rem 1.6rem;
+  text-decoration: none;
+  box-shadow: 0 8px 26px -8px var(--color-gold-glow);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.play-cta:hover,
+.play-cta:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -6px var(--color-gold);
+  outline: none;
+}
+
 /* Map Layout Container */
 .map-viewport {
   position: relative;
