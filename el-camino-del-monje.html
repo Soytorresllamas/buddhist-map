@@ -120,6 +120,11 @@
      color:var(--gold);margin:0 .15rem}
   .footer{margin-top:1.1rem;font-size:.8rem;color:var(--text-muted);text-align:center}
   .footer a{color:var(--gold);text-decoration:none}
+  .sound-toggle{position:absolute;bottom:12px;right:12px;z-index:4;
+     width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.05rem;
+     background:rgba(18,9,2,.72);border:1px solid rgba(212,168,67,.35);
+     color:var(--gold);backdrop-filter:blur(6px);transition:transform .15s,background .15s}
+  .sound-toggle:hover{transform:translateY(-2px);background:rgba(212,168,67,.18)}
   @keyframes fade{from{opacity:0}to{opacity:1}}
 </style>
 </head>
@@ -144,6 +149,9 @@
         <div class="lotus-row" id="lotusRow"></div>
       </div>
     </div>
+
+    <!-- Sound toggle -->
+    <button class="sound-toggle" id="soundToggle" title="Sonido (M)" aria-label="Activar o silenciar el sonido">🔊</button>
 
     <!-- Concept panel -->
     <div class="concept" id="concept">
@@ -178,7 +186,8 @@
     <strong style="color:var(--gold)">Controles:</strong><br>
     <kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> moverse &nbsp;·&nbsp;
     <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar &nbsp;·&nbsp;
-    <kbd>E</kbd> / <kbd>Enter</kbd> aprender en el loto
+    <kbd>E</kbd> / <kbd>Enter</kbd> aprender en el loto &nbsp;·&nbsp;
+    <kbd>M</kbd> sonido
   </div>
 
   <div class="footer">
@@ -238,6 +247,34 @@
   let learnedCount = 0;
   let t = 0;
 
+  // ---- Audio (generated with ElevenLabs) ----
+  const SFX = {
+    learn:   new Audio('audio/game-learn.mp3'),
+    jump:    new Audio('audio/game-jump.mp3'),
+    heart:   new Audio('audio/game-heart.mp3'),
+    nirvana: new Audio('audio/game-nirvana.mp3')
+  };
+  SFX.jump.volume = 0.45;
+  SFX.learn.volume = 0.8;
+  const ambient = new Audio('audio/game-ambient.mp3');
+  ambient.loop = true; ambient.volume = 0.32;
+  let muted = false;
+  function play(name){
+    if(muted) return;
+    const a = SFX[name];
+    if(!a) return;
+    try { a.currentTime = 0; a.play().catch(()=>{}); } catch(e){}
+  }
+  function startAmbient(){ if(!muted){ ambient.play().catch(()=>{}); } }
+  const soundBtn = document.getElementById('soundToggle');
+  function setMuted(m){
+    muted = m;
+    soundBtn.textContent = muted ? '🔇' : '🔊';
+    if(muted) ambient.pause();
+    else if(state !== 'start') startAmbient();
+  }
+  soundBtn.addEventListener('click', () => setMuted(!muted));
+
   // ---- HUD elements ----
   const hudStep = document.getElementById('hudStep');
   const hudCount = document.getElementById('hudCount');
@@ -272,6 +309,7 @@
     conceptEl.classList.remove('show');
     if(activeStation && !activeStation.learned){
       activeStation.learned = true; learnedCount++; updateHud();
+      play('learn');
     }
     activeStation = null;
     state = 'play';
@@ -283,6 +321,7 @@
   // Bonus panel: the Four Immeasurables, reached by jumping into the heart
   function openBrahma(){
     state = 'concept'; activeStation = null;
+    play('heart');
     card.style.setProperty('--accent', '#e090b8');
     document.getElementById('cGroup').textContent = 'Bonus · Corazón del sendero';
     document.getElementById('cNum').textContent = '💗';
@@ -311,10 +350,12 @@
     heart.active = false; heart.cooldown = false;
     updateHud();
     state = 'play';
+    startAmbient();
   }
   function endGame(){
     state = 'done';
     endOverlay.classList.remove('hidden');
+    play('nirvana');
   }
   document.getElementById('startBtn').onclick = startGame;
   document.getElementById('restartBtn').onclick = startGame;
@@ -324,6 +365,8 @@
     const k = e.key.toLowerCase();
     if(['arrowleft','arrowright','arrowup',' ','a','d','w'].includes(k)) e.preventDefault();
     keys[k] = true;
+
+    if(k === 'm'){ setMuted(!muted); return; }
 
     if(state === 'concept' && (k === 'enter' || k === 'e' || k === ' ' || k === 'escape')){
       closeConcept(); return;
@@ -356,7 +399,7 @@
 
     // jump
     if((keys[' '] || keys['arrowup'] || keys['w']) && monk.onGround){
-      monk.vy = -10.5; monk.onGround = false;
+      monk.vy = -10.5; monk.onGround = false; play('jump');
     }
     monk.vy += 0.55;
     monk.y += monk.vy;
