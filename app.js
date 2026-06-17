@@ -66,7 +66,8 @@ const POPUPS = {
         ["3. Mudita (Alegría empática):", "Alegrarse sinceramente por el bienestar de otros. Antídoto de la envidia."],
         ["4. Upekkha (Ecuanimidad):", "Equilibrio sereno ante el placer y el dolor. Antídoto del apego y el rechazo."]
       ],
-      "La Intención Correcta (paso 2) es esencialmente Metta y Karuna. Sin estos estados del corazón, el sendero se vuelve árido y rígido."
+      "La Intención Correcta (paso 2) es esencialmente Metta y Karuna. Sin estos estados del corazón, el sendero se vuelve árido y rígido.",
+      "💛 Kataññutā completa el círculo: si las cuatro inconmensurables irradian el corazón hacia afuera —hacia todos los seres—, la gratitud lo voltea hacia adentro para honrar el bien recibido. Katavedità (corresponder con hechos) es su par inseparable. El Buda las nombró como la marca de una persona excelente, rara en el mundo."
     ]
   },
   joyas: {

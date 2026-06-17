@@ -341,6 +341,11 @@ h1 {
   color: var(--color-inconm);
   border-color: rgba(224, 144, 184, 0.25);
 }
+.tag-gold {
+  background: rgba(212, 168, 67, 0.1) !important;
+  color: var(--color-centro) !important;
+  border-color: rgba(212, 168, 67, 0.35) !important;
+}
 
 .node-sendero {
   border: 1.5px solid var(--color-sendero-border);
