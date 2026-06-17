@@ -113,6 +113,10 @@
   .brahma-list div{font-size:.95rem;padding:.4rem .8rem;border-radius:8px;
      border:1px solid rgba(224,144,184,.35);background:rgba(224,144,184,.08)}
   .brahma-list b{color:#e090b8}
+  .grat-list{display:grid;gap:.45rem;margin:1rem auto 0;max-width:320px;text-align:left}
+  .grat-list div{font-size:.95rem;padding:.4rem .8rem;border-radius:8px;
+     border:1px solid rgba(212,168,67,.35);background:rgba(212,168,67,.08)}
+  .grat-list b{color:#d4a843}
 
   /* Start / end overlays */
   .overlay{position:absolute;inset:0;display:flex;flex-direction:column;
@@ -254,9 +258,12 @@
 
   // Bonus heart that blooms after learning "Intención Correcta" (step idx 1)
   const heart = { x: stations[1].x + 70, y: GROUND - 100, active:false, cooldown:false };
+  // Second, higher heart (Kataññutā / gratitude) — needs a double jump to reach
+  const heart2 = { x: heart.x + 160, y: GROUND - 180, active:false, cooldown:false };
+  let brahmaSeen = false;
 
   // ---- Player ----
-  const monk = {x:120, y:GROUND, vy:0, w:34, h:54, onGround:true, face:1, walk:0, speed:3.2};
+  const monk = {x:120, y:GROUND, vy:0, w:34, h:54, onGround:true, face:1, walk:0, speed:3.2, jumps:0, maxJumps:2};
   let camX = 0;
   const keys = {};
   let state = 'start';      // start | play | concept | done
@@ -338,6 +345,7 @@
   // Bonus panel: the Four Immeasurables, reached by jumping into the heart
   function openBrahma(){
     state = 'concept'; activeStation = null;
+    brahmaSeen = true;
     play('heart');
     card.style.setProperty('--accent', '#e090b8');
     document.getElementById('cGroup').textContent = 'Bonus · Corazón del sendero';
@@ -355,16 +363,37 @@
     conceptEl.classList.add('show');
   }
 
+  // Second bonus panel: Kataññutā (gratitude), reached only with a double jump
+  function openGratitud(){
+    state = 'concept'; activeStation = null;
+    play('heart');
+    card.style.setProperty('--accent', '#d4a843');
+    document.getElementById('cGroup').textContent = 'Bonus · Gratitud';
+    document.getElementById('cNum').textContent = '💛';
+    document.getElementById('cTitle').textContent = 'Kataññutā';
+    document.getElementById('cPali').textContent = 'Gratitud — el corazón que reconoce';
+    document.getElementById('cText').innerHTML =
+      'Kataññutā es la gratitud: reconocer y recordar el bien que otros han hecho por ti. ' +
+      'El Buda la nombró, junto a katavedità, como la marca de una buena persona, rara en el mundo. ' +
+      'Si las Inconmensurables vuelcan el amor hacia afuera, la gratitud gira el corazón hacia adentro para honrar lo recibido.' +
+      '<div class="grat-list">' +
+      '<div><b>Kataññutā</b> · Reconocer el bien recibido</div>' +
+      '<div><b>Katavedità</b> · Corresponder con hechos</div>' +
+      '</div>';
+    conceptEl.classList.add('show');
+  }
+
   // ---- Overlays ----
   const startOverlay = document.getElementById('startOverlay');
   const endOverlay = document.getElementById('endOverlay');
   function startGame(){
     startOverlay.classList.add('hidden');
     endOverlay.classList.add('hidden');
-    monk.x = 120; monk.y = GROUND; monk.vy = 0; monk.face = 1;
+    monk.x = 120; monk.y = GROUND; monk.vy = 0; monk.face = 1; monk.jumps = 0;
     camX = 0; learnedCount = 0; activeStation = null;
     stations.forEach(s => { s.learned = false; s.glow = 0; });
     heart.active = false; heart.cooldown = false;
+    heart2.active = false; heart2.cooldown = false; brahmaSeen = false;
     updateHud();
     state = 'play';
     startAmbient();
@@ -395,8 +424,18 @@
     if((state === 'start' || state === 'done') && k === 'enter'){
       startGame();
     }
+    if(state === 'play' && (k === ' ' || k === 'arrowup' || k === 'w') && !e.repeat){
+      doJump();
+    }
   });
   addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+  // Edge-triggered jump with up to two jumps (double jump)
+  function doJump(){
+    if(monk.jumps < monk.maxJumps){
+      monk.vy = -10.5; monk.onGround = false; monk.jumps++; play('jump');
+    }
+  }
 
   // ---- Update ----
   function update(){
@@ -414,13 +453,10 @@
     monk.x = Math.max(40, Math.min(BODHI_X - 10, monk.x));
     monk.walk = moving ? (monk.walk + .25) : 0;
 
-    // jump
-    if((keys[' '] || keys['arrowup'] || keys['w']) && monk.onGround){
-      monk.vy = -10.5; monk.onGround = false; play('jump');
-    }
+    // gravity & landing (jumps are edge-triggered in the keydown handler)
     monk.vy += 0.55;
     monk.y += monk.vy;
-    if(monk.y >= GROUND){ monk.y = GROUND; monk.vy = 0; monk.onGround = true; }
+    if(monk.y >= GROUND){ monk.y = GROUND; monk.vy = 0; monk.onGround = true; monk.jumps = 0; }
 
     // camera follows
     const target = monk.x - W * 0.38;
@@ -444,6 +480,15 @@
       const touching = dx < 26 && heart.y >= (monk.y - monk.h - 6) && heart.y <= (monk.y + 6);
       if(touching && !heart.cooldown){ openBrahma(); heart.cooldown = true; }
       if(!touching) heart.cooldown = false;
+    }
+
+    // Second heart (Kataññutā) appears after the first; higher, needs a double jump
+    heart2.active = brahmaSeen;
+    if(heart2.active){
+      const dx = Math.abs(monk.x - heart2.x);
+      const touching = dx < 26 && heart2.y >= (monk.y - monk.h - 6) && heart2.y <= (monk.y + 6);
+      if(touching && !heart2.cooldown){ openGratitud(); heart2.cooldown = true; }
+      if(!touching) heart2.cooldown = false;
     }
   }
 
@@ -585,17 +630,18 @@
     ctx.restore();
   }
 
-  function drawHeart(x, y){
+  function drawHeart(x, y, color){
+    color = color || '#e090b8';
     const bob = Math.sin(t*0.06) * 5;
     ctx.save(); ctx.translate(x, y + bob);
     // glow
     const gl = ctx.createRadialGradient(0,0,2,0,0,36);
-    gl.addColorStop(0,'rgba(224,144,184,.6)'); gl.addColorStop(1,'rgba(224,144,184,0)');
+    gl.addColorStop(0, hexA(color,.6)); gl.addColorStop(1, hexA(color,0));
     ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0,0,36,0,Math.PI*2); ctx.fill();
     // heart shape (centered)
     const s = 22; ctx.translate(0,-s/2);
     const grd = ctx.createLinearGradient(0,0,0,s);
-    grd.addColorStop(0,'#f0a8cc'); grd.addColorStop(1,'#d06ca0');
+    grd.addColorStop(0, lighten(color,.4)); grd.addColorStop(1, color);
     ctx.fillStyle = grd;
     const top = s*0.3;
     ctx.beginPath();
@@ -616,6 +662,13 @@
     const h = hex.replace('#',''); const r=parseInt(h.substr(0,2),16),
       g=parseInt(h.substr(2,2),16), b=parseInt(h.substr(4,2),16);
     return `rgba(${r},${g},${b},${a})`;
+  }
+  function lighten(hex, amount){
+    const h = hex.replace('#','');
+    const r = Math.min(255, parseInt(h.substr(0,2),16) + Math.round(255*amount));
+    const g = Math.min(255, parseInt(h.substr(2,2),16) + Math.round(255*amount));
+    const b = Math.min(255, parseInt(h.substr(4,2),16) + Math.round(255*amount));
+    return `rgb(${r},${g},${b})`;
   }
   function roundRect(x,y,w,h,r){
     ctx.beginPath();
@@ -669,6 +722,15 @@
         ctx.fillStyle = 'rgba(18,9,2,.85)'; roundRect(-30,-13,60,22,7); ctx.fill();
         ctx.fillStyle = '#e090b8'; ctx.font = "600 12px 'Outfit',sans-serif";
         ctx.textAlign = 'center'; ctx.fillText('Salta ↑', 0, 2); ctx.restore();
+      }
+    }
+    if(heart2.active){
+      drawHeart(heart2.x, heart2.y, '#d4a843');
+      if(state === 'play' && monk.onGround && Math.abs(monk.x - heart2.x) < 80){
+        ctx.save(); ctx.translate(heart2.x, GROUND - 240);
+        ctx.fillStyle = 'rgba(18,9,2,.85)'; roundRect(-34,-13,68,22,7); ctx.fill();
+        ctx.fillStyle = '#d4a843'; ctx.font = "600 12px 'Outfit',sans-serif";
+        ctx.textAlign = 'center'; ctx.fillText('Salta ↑↑', 0, 2); ctx.restore();
       }
     }
     drawMonk(monk.x, monk.y);
