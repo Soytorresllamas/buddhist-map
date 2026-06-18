@@ -1,0 +1,142 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-gold: #d4a843;
+  --color-gold-glow: rgba(212, 168, 67, 0.25);
+  --color-bg-primary: #120902;
+  --color-bg-secondary: #1a0e05;
+  --color-bg-card: rgba(26, 14, 5, 0.65);
+  --color-text-light: #f0e6c8;
+  --color-text-muted: #a08060;
+  --color-joyas: #d4d460;
+  --color-marcas: #e09060;
+  --color-paramitas: #9090e0;
+  --color-inconm: #e090b8;
+  --color-sendero: #7ed87e;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --font-title: 'Cinzel Decorative', Georgia, serif;
+  --font-serif: 'Cinzel', Georgia, serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-quote: 'Lora', serif;
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* Buddhist dark theme — overrides the shadcn light defaults */
+:root {
+  --background: #120902;
+  --foreground: #f0e6c8;
+  --card: rgba(26, 14, 5, 0.65);
+  --card-foreground: #f0e6c8;
+  --popover: #150a04;
+  --popover-foreground: #f0e6c8;
+  --primary: #d4a843;
+  --primary-foreground: #120902;
+  --secondary: rgba(26, 14, 5, 0.8);
+  --secondary-foreground: #f0e6c8;
+  --muted: rgba(26, 14, 5, 0.4);
+  --muted-foreground: #a08060;
+  --accent: rgba(212, 168, 67, 0.1);
+  --accent-foreground: #d4a843;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: rgba(212, 168, 67, 0.2);
+  --input: rgba(212, 168, 67, 0.2);
+  --ring: rgba(212, 168, 67, 0.5);
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Dialog overlay: match the existing .modal-overlay dark backdrop */
+[data-slot="dialog-overlay"] {
+  background: rgba(0, 0, 0, 0.85) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* Dialog content: match the existing .modal-content Buddhist style */
+.node-detail-dialog {
+  border: 2px solid var(--color-gold);
+  border-radius: 20px !important;
+  padding: 0 !important;
+  max-height: 85dvh !important;
+  overflow: hidden !important;
+}
+
+.node-detail-inner {
+  background: #150a04;
+  background-image: radial-gradient(circle at top, rgba(212, 168, 67, 0.05) 0%, transparent 70%);
+  padding: 2.25rem;
+  max-height: 85dvh;
+  overflow-y: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #a08060 transparent;
+}
+
+.node-detail-inner::-webkit-scrollbar { width: 6px; }
+.node-detail-inner::-webkit-scrollbar-track { background: transparent; }
+.node-detail-inner::-webkit-scrollbar-thumb {
+  background: #a08060;
+  border-radius: 10px;
+}
+.node-detail-inner::-webkit-scrollbar-thumb:hover { background: #d4a843; }
