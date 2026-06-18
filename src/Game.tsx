@@ -94,7 +94,10 @@ export default function Game() {
   const brahmaSeen      = useRef(false)
   const activeStation   = useRef<Station | null>(null)
   const mutedRef        = useRef(false)
-  const ambientRef      = useRef<HTMLAudioElement | null>(null)
+  const actxRef         = useRef<AudioContext | null>(null)
+  const ambNodesRef     = useRef<{ oscs: OscillatorNode[]; gain: GainNode } | null>(null)
+  const stopAmbientRef  = useRef<(() => void) | null>(null)
+  const startAmbientRef = useRef<(() => void) | null>(null)
   const rafRef          = useRef(0)
   const closeConceptRef = useRef<(() => void) | null>(null)
   const startGameRef    = useRef<(() => void) | null>(null)
@@ -115,20 +118,55 @@ export default function Game() {
     heartRef.current  = { x: stationsRef.current[1].x + 70,  y: GROUND - 100, active: false, cooldown: false }
     heart2Ref.current = { x: heartRef.current.x + 160,        y: GROUND - 180, active: false, cooldown: false }
 
-    const sfx = {
-      learn:   Object.assign(new Audio('audio/game-learn.mp3'),   { volume: 0.8  }),
-      jump:    Object.assign(new Audio('audio/game-jump.mp3'),    { volume: 0.45 }),
-      heart:   new Audio('audio/game-heart.mp3'),
-      nirvana: new Audio('audio/game-nirvana.mp3'),
-    } as Record<string, HTMLAudioElement>
-    const ambient = Object.assign(new Audio('audio/game-ambient.mp3'), { loop: true, volume: 0.32 })
-    ambientRef.current = ambient
-
-    const play = (name: string) => {
-      if (mutedRef.current || !sfx[name]) return
-      try { sfx[name].currentTime = 0; sfx[name].play().catch(() => {}) } catch {}
+    // Web Audio — no external files needed
+    const getCtx = () => {
+      if (!actxRef.current) {
+        const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        actxRef.current = new Ctx()
+      }
+      return actxRef.current
     }
-    const startAmbient = () => { if (!mutedRef.current) ambient.play().catch(() => {}) }
+    const tone = (freq: number, vol: number, startOff: number, dur: number) => {
+      const ctx = getCtx()
+      const osc = ctx.createOscillator(); const g = ctx.createGain()
+      osc.connect(g); g.connect(ctx.destination); osc.type = 'sine'; osc.frequency.value = freq
+      const t = ctx.currentTime + startOff
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.02)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+      osc.start(t); osc.stop(t + dur + 0.05)
+    }
+    const sfx: Record<string, () => void> = {
+      learn:   () => { [[523,.30,.12],[659,.26,.22],[784,.22,.32]].forEach(([f,v,s]) => tone(f,v,s,.75)) },
+      jump:    () => {
+        const ctx = getCtx(); const osc = ctx.createOscillator(); const g = ctx.createGain()
+        osc.connect(g); g.connect(ctx.destination); osc.type = 'sine'
+        const t = ctx.currentTime
+        osc.frequency.setValueAtTime(280,t); osc.frequency.exponentialRampToValueAtTime(560,t+.12)
+        g.gain.setValueAtTime(.22,t); g.gain.exponentialRampToValueAtTime(.0001,t+.18)
+        osc.start(t); osc.stop(t+.22)
+      },
+      heart:   () => { [[392,.18,.14],[523,.15,.26]].forEach(([f,v,s]) => tone(f,v,s,1.1)) },
+      nirvana: () => { [[261,.16,.22],[330,.15,.38],[392,.14,.52],[523,.13,.66]].forEach(([f,v,s]) => tone(f,v,s,3.2)) },
+    }
+    const play = (name: string) => { if (mutedRef.current) return; try { sfx[name]?.() } catch {} }
+
+    const stopAmbient = () => {
+      const n = ambNodesRef.current; if (!n) return
+      n.oscs.forEach(o => { try { o.stop() } catch {} }); n.gain.disconnect()
+      ambNodesRef.current = null
+    }
+    const startAmbient = () => {
+      if (mutedRef.current || ambNodesRef.current) return
+      const ctx = getCtx()
+      const gain = ctx.createGain(); gain.gain.value = 0.04; gain.connect(ctx.destination)
+      const oscs = [110, 165, 220].map(freq => {
+        const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = freq
+        osc.connect(gain); osc.start(); return osc
+      })
+      ambNodesRef.current = { oscs, gain }
+    }
+    stopAmbientRef.current  = stopAmbient
+    startAmbientRef.current = startAmbient
 
     const updateHud = () => {
       setLearned(learnedRef.current)
@@ -572,15 +610,14 @@ export default function Game() {
       cancelAnimationFrame(rafRef.current)
       window.removeEventListener('keydown', onKeyDown)
       window.removeEventListener('keyup', onKeyUp)
-      ambient.pause()
+      stopAmbient()
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMuteToggle = () => {
     const nm = !mutedRef.current; mutedRef.current = nm; setMuted(nm)
-    const amb = ambientRef.current
-    if (!amb) return
-    if (nm) amb.pause(); else if (phaseRef.current !== 'start') amb.play().catch(() => {})
+    if (nm) stopAmbientRef.current?.()
+    else if (phaseRef.current !== 'start') startAmbientRef.current?.()
   }
 
   const holdKey = (key: string, down: boolean) => { keysRef.current[key] = down }
