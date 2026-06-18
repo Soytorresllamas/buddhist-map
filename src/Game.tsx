@@ -15,14 +15,38 @@ const GROUPS = {
 type GroupKey = keyof typeof GROUPS
 
 const STEPS: { n: string; g: GroupKey; t: string; p: string; d: string }[] = [
-  { n: '①', g: 'prajna',  t: 'Visión Correcta',        p: 'Sammā Diṭṭhi',   d: 'Comprender las Cuatro Nobles Verdades y ver la realidad tal como es: impermanente, insatisfactoria y sin un yo fijo.' },
-  { n: '②', g: 'prajna',  t: 'Intención Correcta',     p: 'Sammā Saṅkappa', d: 'Cultivar la renuncia, la buena voluntad y la inofensividad. Es el corazón que orienta cada paso del camino.' },
-  { n: '③', g: 'sila',    t: 'Habla Correcta',         p: 'Sammā Vācā',     d: 'No mentir, no calumniar, no hablar con dureza ni frivolidad. Palabras veraces, amables y oportunas.' },
-  { n: '④', g: 'sila',    t: 'Acción Correcta',        p: 'Sammā Kammanta', d: 'No matar, no robar, no dañar. Obrar con integridad ética (Sīla) hacia todos los seres.' },
-  { n: '⑤', g: 'sila',    t: 'Sustento Correcto',      p: 'Sammā Ājīva',    d: 'Ganarse la vida sin causar daño: un trabajo honesto que no explote ni perjudique a otros seres.' },
-  { n: '⑥', g: 'samadhi', t: 'Esfuerzo Correcto',      p: 'Sammā Vāyāma',   d: 'Cultivar lo sano y abandonar lo dañino. La energía diligente que sostiene la práctica día a día.' },
-  { n: '⑦', g: 'samadhi', t: 'Atención Correcta',      p: 'Sammā Sati',     d: 'Mindfulness: presencia plena y serena del cuerpo, las sensaciones, la mente y los fenómenos.' },
-  { n: '⑧', g: 'samadhi', t: 'Concentración Correcta', p: 'Sammā Samādhi',  d: 'Unificar la mente en quietud luminosa (los jhānas). La calma profunda donde madura la sabiduría.' },
+  {
+    n: '①', g: 'prajna', t: 'Visión Correcta', p: 'Sammā Diṭṭhi',
+    d: 'Ver la realidad tal como es: el sufrimiento existe, tiene causas, puede cesar y hay un camino hacia su cese. Comprender la impermanencia de todo lo condicionado, la insatisfacción inherente al apego y la ausencia de un yo fijo e independiente.',
+  },
+  {
+    n: '②', g: 'prajna', t: 'Intención Correcta', p: 'Sammā Saṅkappa',
+    d: 'Tres resoluciones que orientan el corazón: renunciar al apego y al deseo egoísta; cultivar la buena voluntad hacia todos los seres sin excepción; comprometerse a no causar daño con pensamiento, palabra ni obra. Son la fragancia que nace naturalmente de ver con claridad.',
+  },
+  {
+    n: '③', g: 'sila', t: 'Habla Correcta', p: 'Sammā Vācā',
+    d: 'Hablar solo lo que es verdadero, útil, oportuno y benévolo. Abstenerse de mentir, calumniar, hablar con dureza o gastar palabras en trivialidades. Cada palabra es un acto que moldea la mente de quien la pronuncia y el mundo de quien la escucha.',
+  },
+  {
+    n: '④', g: 'sila', t: 'Acción Correcta', p: 'Sammā Kammanta',
+    d: 'Abstenerse de matar, robar y toda conducta sexual que cause daño. Los tres preceptos del cuerpo que forman la base de la ética (Sīla): protegen a todos los seres, purifican la mente del practicante y crean la confianza sin la que la comunidad no puede florecer.',
+  },
+  {
+    n: '⑤', g: 'sila', t: 'Sustento Correcto', p: 'Sammā Ājīva',
+    d: 'Ganarse la vida de manera que no cause daño ni a otros seres ni a uno mismo. El Buda señaló cinco medios de vida incorrectos: comerciar con armas, seres vivos, carne, intoxicantes o venenos. El trabajo cotidiano puede ser práctica del Dharma durante ocho horas al día.',
+  },
+  {
+    n: '⑥', g: 'samadhi', t: 'Esfuerzo Correcto', p: 'Sammā Vāyāma',
+    d: 'Los Cuatro Esfuerzos Correctos: impedir que surjan estados dañinos aún no surgidos; abandonar los que ya surgieron; cultivar estados sanos aún no presentes; mantener y madurar los que ya han surgido. La voluntad diligente que sostiene la práctica sin caer en el esfuerzo crispado ni en la pereza.',
+  },
+  {
+    n: '⑦', g: 'samadhi', t: 'Atención Correcta', p: 'Sammā Sati',
+    d: 'Presencia plena sobre las cuatro bases: el cuerpo y sus sensaciones físicas; las tonalidades hedónicas (agradable, desagradable, neutro); los estados de la mente; los fenómenos mentales y su relación con el Dharma. Atención sin aferramiento ni rechazo, que observa cómo surgen y cesan todas las cosas.',
+  },
+  {
+    n: '⑧', g: 'samadhi', t: 'Concentración Correcta', p: 'Sammā Samādhi',
+    d: 'Los cuatro jhānas: etapas de unificación progresiva en las que la mente se estabiliza, se purifica y se ilumina desde adentro. En la calma luminosa del cuarto jhāna, con ecuanimidad perfecta, la sabiduría madura como fruto. El Sendero completo converge aquí.',
+  },
 ]
 
 interface Station {
@@ -33,15 +57,16 @@ interface ConceptData {
   type: 'step' | 'brahma' | 'gratitud'
   groupColor: string; groupName: string; num: string
   title: string; pali: string; text?: string
+  stepNum?: number; totalSteps?: number
 }
 
 export default function Game() {
-  const [phase, setPhase]           = useState<'start'|'play'|'concept'|'done'>('start')
-  const [learnedCount, setLearned]  = useState(0)
-  const [nextStep, setNextStep]     = useState('Visión Correcta')
-  const [lotusDots, setLotusDots]   = useState<boolean[]>(Array(8).fill(false))
-  const [concept, setConcept]       = useState<ConceptData | null>(null)
-  const [muted, setMuted]           = useState(false)
+  const [phase, setPhase]         = useState<'start'|'play'|'concept'|'done'>('start')
+  const [learnedCount, setLearned] = useState(0)
+  const [nextStep, setNextStep]   = useState('Visión Correcta')
+  const [lotusDots, setLotusDots] = useState<boolean[]>(Array(8).fill(false))
+  const [concept, setConcept]     = useState<ConceptData | null>(null)
+  const [muted, setMuted]         = useState(false)
 
   const canvasRef       = useRef<HTMLCanvasElement>(null)
   const phaseRef        = useRef<'start'|'play'|'concept'|'done'>('start')
@@ -60,6 +85,7 @@ export default function Game() {
   const rafRef          = useRef(0)
   const closeConceptRef = useRef<(() => void) | null>(null)
   const startGameRef    = useRef<(() => void) | null>(null)
+  const doJumpRef       = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     stationsRef.current = STEPS.map((s, i) => ({
@@ -69,7 +95,6 @@ export default function Game() {
     heartRef.current  = { x: stationsRef.current[1].x + 70,  y: GROUND - 100, active: false, cooldown: false }
     heart2Ref.current = { x: heartRef.current.x + 160,        y: GROUND - 180, active: false, cooldown: false }
 
-    // Audio
     const sfx = {
       learn:   Object.assign(new Audio('audio/game-learn.mp3'),   { volume: 0.8  }),
       jump:    Object.assign(new Audio('audio/game-jump.mp3'),    { volume: 0.45 }),
@@ -96,7 +121,7 @@ export default function Game() {
       phaseRef.current = 'concept'; setPhase('concept')
       activeStation.current = st
       const g = GROUPS[st.step.g]
-      setConcept({ type: 'step', groupColor: g.color, groupName: g.name, num: st.step.n, title: st.step.t, pali: st.step.p, text: st.step.d })
+      setConcept({ type: 'step', groupColor: g.color, groupName: g.name, num: st.step.n, title: st.step.t, pali: st.step.p, text: st.step.d, stepNum: st.idx + 1, totalSteps: STEPS.length })
     }
 
     const closeConcept = () => {
@@ -115,7 +140,7 @@ export default function Game() {
     const openBrahma = () => {
       phaseRef.current = 'concept'; setPhase('concept')
       activeStation.current = null; brahmaSeen.current = true; play('heart')
-      setConcept({ type: 'brahma', groupColor: '#e090b8', groupName: 'Bonus · Corazón del sendero', num: '💗', title: 'Las Cuatro Inconmensurables', pali: 'Brahmaviharas — Moradas divinas' })
+      setConcept({ type: 'brahma', groupColor: '#e090b8', groupName: 'Bonus · Corazón del sendero', num: '💗', title: 'Las Cuatro Inconmensurables', pali: 'Brahmaviharā — Las Moradas Divinas' })
     }
 
     const openGratitud = () => {
@@ -146,8 +171,8 @@ export default function Game() {
 
     closeConceptRef.current = closeConcept
     startGameRef.current    = startGame
+    doJumpRef.current       = doJump
 
-    // Input
     const onKeyDown = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase()
       if (['arrowleft','arrowright','arrowup',' ','a','d','w'].includes(k)) e.preventDefault()
@@ -171,7 +196,7 @@ export default function Game() {
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
 
-    // Canvas drawing helpers
+    // Canvas engine
     const canvas = canvasRef.current!
     const ctx = canvas.getContext('2d')!
     const W = CANVAS_W, H = CANVAS_H
@@ -408,6 +433,8 @@ export default function Game() {
     if (nm) amb.pause(); else if (phaseRef.current !== 'start') amb.play().catch(() => {})
   }
 
+  const holdKey = (key: string, down: boolean) => { keysRef.current[key] = down }
+
   return (
     <>
       <header>
@@ -419,6 +446,7 @@ export default function Game() {
       <div className="stage">
         <canvas ref={canvasRef} width={CANVAS_W} height={CANVAS_H} />
 
+        {/* HUD */}
         <div className="hud">
           <div className="step-name">
             <div className="kicker">Próximo paso</div>
@@ -432,71 +460,131 @@ export default function Game() {
           </div>
         </div>
 
+        {/* Sound toggle — hidden on touch, replaced by touch-controls row */}
         <button className="sound-toggle" onClick={handleMuteToggle} title="Sonido (M)" aria-label="Activar o silenciar el sonido">
           {muted ? '🔇' : '🔊'}
         </button>
 
+        {/* Concept panel */}
         {concept && (
           <div className="concept show">
             <div className="concept-card" style={{ '--accent': concept.groupColor } as CSSProperties}>
-              <span className="group-tag">{concept.groupName}</span>
+              <div className="concept-top">
+                <span className="group-tag">{concept.groupName}</span>
+                {concept.stepNum != null && (
+                  <span className="step-counter">paso {concept.stepNum} de {concept.totalSteps}</span>
+                )}
+              </div>
               <div className="num">{concept.num}</div>
               <h2>{concept.title}</h2>
               <div className="pali">{concept.pali}</div>
+              <div className="concept-divider" />
               {concept.type === 'step' && <p>{concept.text}</p>}
               {concept.type === 'brahma' && (
                 <>
-                  <p>La Intención Correcta florece en cuatro actitudes ilimitadas que dan corazón al sendero:</p>
+                  <p>La Intención Correcta florece en cuatro actitudes ilimitadas — las Moradas Divinas que dan corazón al sendero:</p>
                   <div className="brahma-list">
-                    <div><b>Metta</b> · Amor bondadoso</div>
-                    <div><b>Karuna</b> · Compasión</div>
-                    <div><b>Mudita</b> · Alegría empática</div>
-                    <div><b>Upekkha</b> · Ecuanimidad</div>
+                    <div><b>Metta</b> · Amor bondadoso<small>Desear la felicidad a todos los seres sin excepción</small></div>
+                    <div><b>Karuṇā</b> · Compasión<small>Querer que todo ser quede libre del sufrimiento</small></div>
+                    <div><b>Muditā</b> · Alegría empática<small>Alegrarse genuinamente con el bien ajeno</small></div>
+                    <div><b>Upekkhā</b> · Ecuanimidad<small>Amar sin apego, con serenidad inconmovible</small></div>
                   </div>
                 </>
               )}
               {concept.type === 'gratitud' && (
                 <>
-                  <p>Kataññutā es la gratitud: reconocer y recordar el bien que otros han hecho por ti. El Buda la nombró, junto a katavedità, como la marca de una buena persona, rara en el mundo. Si las Inconmensurables vuelcan el amor hacia afuera, la gratitud gira el corazón hacia adentro para honrar lo recibido.</p>
+                  <p>Kataññutā es la gratitud: reconocer y recordar el bien que otros han hecho por ti. El Buda la nombró, junto a katavedità, como la marca de una buena persona — una persona rara en el mundo. Si las Inconmensurables vuelcan el amor hacia afuera, la gratitud gira el corazón hacia adentro para honrar lo recibido.</p>
                   <div className="grat-list">
-                    <div><b>Kataññutā</b> · Reconocer el bien recibido</div>
-                    <div><b>Katavedità</b> · Corresponder con hechos</div>
+                    <div><b>Kataññutā</b> · Reconocer el bien recibido<small>Ver con claridad lo que los demás han dado</small></div>
+                    <div><b>Katavedità</b> · Corresponder con hechos<small>Responder con actos concretos de retribución</small></div>
                   </div>
                 </>
               )}
-              <div className="hint">Pulsa <kbd>Enter</kbd> para continuar el camino</div>
-              <button className="btn" style={{ marginTop: '1rem' }} onClick={() => closeConceptRef.current?.()}>
-                Continuar
+              <div className="hint">Pulsa <kbd>Enter</kbd> o toca <kbd>Continuar</kbd> para seguir el camino</div>
+              <button className="btn continue-btn" onClick={() => closeConceptRef.current?.()}>
+                Continuar →
               </button>
             </div>
           </div>
         )}
 
+        {/* Start overlay */}
         {phase === 'start' && (
           <div className="overlay">
             <div className="big">🪷</div>
             <h2>El Camino del Monje</h2>
-            <p>Un monje emprende el Óctuple Sendero. Camina hacia la derecha y detente en cada loto de luz para aprender uno de los ocho pasos. Cuando reúnas los ocho, alcanzarás la iluminación.</p>
+            <p>Un monje emprende el Óctuple Sendero. Camina hacia la derecha y detente en cada loto de luz para aprender uno de los ocho pasos. Reúne los ocho para alcanzar la iluminación.</p>
             <button className="btn" onClick={() => startGameRef.current?.()}>Comenzar el camino</button>
           </div>
         )}
 
+        {/* End overlay */}
         {phase === 'done' && (
           <div className="overlay">
             <div className="big">☸️</div>
             <h2>Has alcanzado el Nirvana</h2>
-            <p>El monje ha completado el Óctuple Sendero: Sabiduría, Ética y Concentración en perfecta armonía. La llama del sufrimiento se ha apagado.</p>
+            <p>El monje completó el Óctuple Sendero: Sabiduría, Ética y Concentración en perfecta armonía. La llama del sufrimiento se ha apagado.</p>
+            <div className="path-summary">
+              {STEPS.map(s => (
+                <div key={s.n} className="path-step" style={{ '--step-color': GROUPS[s.g].color } as CSSProperties}>
+                  {s.n} {s.t}
+                </div>
+              ))}
+            </div>
             <button className="btn" onClick={() => startGameRef.current?.()}>Caminar de nuevo</button>
           </div>
         )}
       </div>
 
+      {/* Touch controls — visible only on touch devices via CSS (pointer: coarse) */}
+      <div className="touch-controls" role="group" aria-label="Controles táctiles">
+        <button
+          className="touch-btn touch-sound"
+          onClick={handleMuteToggle}
+          aria-label={muted ? 'Activar sonido' : 'Silenciar'}
+        >
+          {muted ? '🔇' : '🔊'}
+        </button>
+        <button
+          className="touch-btn touch-move"
+          aria-label="Mover a la izquierda"
+          onPointerDown={() => holdKey('arrowleft', true)}
+          onPointerUp={() => holdKey('arrowleft', false)}
+          onPointerLeave={() => holdKey('arrowleft', false)}
+          onPointerCancel={() => holdKey('arrowleft', false)}
+        >
+          ←
+        </button>
+        <button
+          className="touch-btn touch-jump"
+          aria-label="Saltar"
+          onPointerDown={() => doJumpRef.current?.()}
+        >
+          ↑ saltar
+        </button>
+        <button
+          className="touch-btn touch-move"
+          aria-label="Mover a la derecha"
+          onPointerDown={() => holdKey('arrowright', true)}
+          onPointerUp={() => holdKey('arrowright', false)}
+          onPointerLeave={() => holdKey('arrowright', false)}
+          onPointerCancel={() => holdKey('arrowright', false)}
+        >
+          →
+        </button>
+      </div>
+
       <div className="controls">
-        <strong style={{ color: 'var(--gold)' }}>Controles:</strong><br />
-        <kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> moverse &nbsp;·&nbsp;
-        <kbd>Espacio</kbd> / <kbd>↑</kbd> saltar &nbsp;·&nbsp;
-        <kbd>E</kbd> / <kbd>Enter</kbd> aprender en el loto &nbsp;·&nbsp;
-        <kbd>M</kbd> sonido
+        <span className="keyboard-hint">
+          <strong style={{ color: 'var(--gold)' }}>Controles:</strong>{' '}
+          <kbd>←</kbd> <kbd>→</kbd> mover &nbsp;·&nbsp;
+          <kbd>Espacio</kbd> saltar &nbsp;·&nbsp;
+          <kbd>E</kbd> aprender &nbsp;·&nbsp;
+          <kbd>M</kbd> sonido
+        </span>
+        <span className="touch-hint">
+          Camina con ← → · Salta para alcanzar los corazones · El monje aprende al pisar cada loto
+        </span>
       </div>
 
       <div className="game-footer">
