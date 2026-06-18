@@ -680,20 +680,17 @@ export default function Game() {
           <div className="overlay">
             <div className="big">☸️</div>
             <h2>Has alcanzado el Nirvana</h2>
-            <p>El monje completó el Óctuple Sendero: Sabiduría, Ética y Concentración en perfecta armonía.</p>
-            <div className="trilak-summary">
-              <div className="trilak-summary-item anicca">✦ Anicca · Todo lo condicionado es impermanente</div>
-              <div className="trilak-summary-item dukkha">● Dukkha · El apego genera sufrimiento</div>
-              <div className="trilak-summary-item anatta">◯ Anattā · No existe un yo fijo e independiente</div>
+            <p>Los ocho pasos recorridos. Las tres marcas de la existencia, vividas en el camino.</p>
+            <div className="end-trilak-row">
+              <span className="trilak-badge trilak-anicca">✦ Anicca</span>
+              <span className="trilak-badge trilak-dukkha">● Dukkha</span>
+              <span className="trilak-badge trilak-anatta">◯ Anattā</span>
             </div>
-            <div className="path-summary">
-              {STEPS.map(s => (
-                <div key={s.n} className="path-step" style={{ '--step-color': GROUPS[s.g].color } as CSSProperties}>
-                  {s.n} {s.t}
-                </div>
-              ))}
+            <div className="end-cta">
+              <p className="end-cta-text">¿Quieres profundizar en cada paso?</p>
+              <a className="btn" href="octuple-noble-sendero.html">Explorar la Guía del Sendero →</a>
             </div>
-            <button className="btn" onClick={() => startGameRef.current?.()}>Caminar de nuevo</button>
+            <button className="btn-ghost" onClick={() => startGameRef.current?.()}>Caminar de nuevo</button>
           </div>
         )}
       </div>

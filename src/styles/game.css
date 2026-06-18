@@ -497,25 +497,51 @@ canvas {
 .trilak-badge.trilak-dukkha { color: #c87890; border: 1px solid rgba(200,120,144,.4); background: rgba(200,120,144,.08); }
 .trilak-badge.trilak-anatta { color: #90c8a8; border: 1px solid rgba(144,200,168,.4); background: rgba(144,200,168,.08); }
 
-/* ---- Trilakshana summary (end screen) ---- */
-.trilak-summary {
+/* ---- End screen trilak row ---- */
+.end-trilak-row {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: .1rem 0 1.2rem;
+}
+
+/* ---- End screen CTA ---- */
+.end-cta {
   display: flex;
   flex-direction: column;
-  gap: .35rem;
-  margin: .5rem 0 1rem;
-  width: min(360px, 100%);
+  align-items: center;
+  gap: .55rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid rgba(212,168,67,.2);
+  border-radius: 14px;
+  background: rgba(212,168,67,.05);
+  margin-bottom: .9rem;
+  width: min(380px, 100%);
 }
-.trilak-summary-item {
+.end-cta-text {
   font-family: var(--font-serif);
-  font-size: .72rem;
-  letter-spacing: .06em;
-  padding: .3rem .85rem;
-  border-radius: 8px;
-  text-align: left;
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin: 0 !important;
+  opacity: 1 !important;
 }
-.trilak-summary-item.anicca { color: #7cc8f0; border: 1px solid rgba(124,200,240,.35); background: rgba(124,200,240,.06); }
-.trilak-summary-item.dukkha { color: #c87890; border: 1px solid rgba(200,120,144,.35); background: rgba(200,120,144,.06); }
-.trilak-summary-item.anatta { color: #90c8a8; border: 1px solid rgba(144,200,168,.35); background: rgba(144,200,168,.06); }
+.end-cta .btn { margin: 0; }
+
+/* ---- Ghost button ---- */
+.btn-ghost {
+  font-family: var(--font-serif);
+  font-size: .82rem;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid rgba(160,128,96,.35);
+  border-radius: 30px;
+  padding: .45rem 1.2rem;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.btn-ghost:hover { color: var(--gold); border-color: rgba(212,168,67,.5); }
 
 /* ---- Animations ---- */
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
