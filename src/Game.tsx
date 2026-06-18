@@ -422,21 +422,41 @@ export default function Game() {
       }
 
       // trilakshana: Dukkha — samsara cloud (obstacle that slows the monk)
-      if (sam.x > camX - 90 && sam.x < camX + W + 90) {
+      if (sam.x > camX - 110 && sam.x < camX + W + 110) {
         const sp = Math.sin(sam.pulse * 0.05)
-        const gd = ctx.createRadialGradient(sam.x, GROUND-28, 4, sam.x, GROUND-28, 56)
-        gd.addColorStop(0, `rgba(55,8,88,${0.78 + sp * 0.1})`)
-        gd.addColorStop(0.55, `rgba(75,18,98,${0.35 + sp * 0.08})`)
+        const pulse = 0.7 + sp * 0.3
+        // outer glow
+        const glow = ctx.createRadialGradient(sam.x, GROUND-30, 10, sam.x, GROUND-30, 80)
+        glow.addColorStop(0, `rgba(160,40,220,${0.38 * pulse})`)
+        glow.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = glow; ctx.beginPath(); ctx.ellipse(sam.x, GROUND-30, 80, 52, 0, 0, Math.PI*2); ctx.fill()
+        // core cloud
+        const gd = ctx.createRadialGradient(sam.x, GROUND-26, 5, sam.x, GROUND-26, 52)
+        gd.addColorStop(0, `rgba(200,60,255,${0.82 * pulse})`)
+        gd.addColorStop(0.5, `rgba(140,30,200,${0.55 * pulse})`)
         gd.addColorStop(1, 'rgba(0,0,0,0)')
-        ctx.fillStyle = gd; ctx.beginPath(); ctx.ellipse(sam.x, GROUND-26, 56, 32, 0, 0, Math.PI*2); ctx.fill()
-        ctx.strokeStyle = `rgba(180,60,230,${0.32 + sp * 0.1})`; ctx.lineWidth = 1.4
+        ctx.fillStyle = gd; ctx.beginPath(); ctx.ellipse(sam.x, GROUND-26, 52, 30, 0, 0, Math.PI*2); ctx.fill()
+        // swirling wisps
+        ctx.strokeStyle = `rgba(220,100,255,${0.65 * pulse})`; ctx.lineWidth = 2.2; ctx.lineCap = 'round'
         for (let i = 0; i < 4; i++) {
           const a = t * 0.04 + i * 1.57
           ctx.beginPath()
-          ctx.moveTo(sam.x + Math.cos(a) * 24, GROUND-14 + Math.sin(a) * 11)
-          ctx.quadraticCurveTo(sam.x + Math.cos(a+0.8) * 10, GROUND-38, sam.x + Math.cos(a+1.6) * 28, GROUND-56 + Math.sin(a+1.1) * 9)
+          ctx.moveTo(sam.x + Math.cos(a) * 22, GROUND-12 + Math.sin(a) * 10)
+          ctx.quadraticCurveTo(sam.x + Math.cos(a+0.8) * 8, GROUND-36, sam.x + Math.cos(a+1.6) * 26, GROUND-54 + Math.sin(a+1.1) * 8)
           ctx.stroke()
         }
+        // label
+        ctx.fillStyle = `rgba(220,120,255,${0.7 * pulse})`
+        ctx.font = "500 11px 'Outfit',sans-serif"; ctx.textAlign = 'center'
+        ctx.fillText('☁ Samsara', sam.x, GROUND - 68)
+      }
+      // monk gets purple aura when hit by samsara
+      const samsaraHitNow = Math.abs(monk.x - sam.x) < 55
+      if (samsaraHitNow) {
+        const aura = ctx.createRadialGradient(monk.x, monk.y - 28, 4, monk.x, monk.y - 28, 38)
+        aura.addColorStop(0, 'rgba(180,50,240,0.45)')
+        aura.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = aura; ctx.beginPath(); ctx.ellipse(monk.x, monk.y - 28, 38, 38, 0, 0, Math.PI*2); ctx.fill()
       }
 
       drawMonk(monk.x, monk.y)
@@ -490,7 +510,7 @@ export default function Game() {
       sam.x += sam.speed; sam.pulse++
       if (sam.x > BODHI_X + 160) sam.x = 260
       const samsaraHit = Math.abs(monk.x - sam.x) < 55
-      monk.speed = samsaraHit ? 1.55 : 3.2
+      monk.speed = samsaraHit ? 0.9 : 3.2
 
       const left = keys['arrowleft']||keys['a']; const right = keys['arrowright']||keys['d']
       let moving = false
