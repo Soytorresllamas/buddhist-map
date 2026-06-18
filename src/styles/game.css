@@ -482,6 +482,41 @@ canvas {
   .lotus-row .dot { width: 7px; height: 7px; }
 }
 
+/* ---- Trilakshana badge (inside concept card) ---- */
+.trilak-badge {
+  display: inline-block;
+  font-family: var(--font-serif);
+  font-size: .6rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  border-radius: 20px;
+  padding: .18rem .8rem;
+  margin-bottom: .75rem;
+}
+.trilak-badge.trilak-anicca { color: #7cc8f0; border: 1px solid rgba(124,200,240,.4); background: rgba(124,200,240,.08); }
+.trilak-badge.trilak-dukkha { color: #c87890; border: 1px solid rgba(200,120,144,.4); background: rgba(200,120,144,.08); }
+.trilak-badge.trilak-anatta { color: #90c8a8; border: 1px solid rgba(144,200,168,.4); background: rgba(144,200,168,.08); }
+
+/* ---- Trilakshana summary (end screen) ---- */
+.trilak-summary {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  margin: .5rem 0 1rem;
+  width: min(360px, 100%);
+}
+.trilak-summary-item {
+  font-family: var(--font-serif);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  padding: .3rem .85rem;
+  border-radius: 8px;
+  text-align: left;
+}
+.trilak-summary-item.anicca { color: #7cc8f0; border: 1px solid rgba(124,200,240,.35); background: rgba(124,200,240,.06); }
+.trilak-summary-item.dukkha { color: #c87890; border: 1px solid rgba(200,120,144,.35); background: rgba(200,120,144,.06); }
+.trilak-summary-item.anatta { color: #90c8a8; border: 1px solid rgba(144,200,168,.35); background: rgba(144,200,168,.06); }
+
 /* ---- Animations ---- */
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }

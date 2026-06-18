@@ -14,40 +14,49 @@ const GROUPS = {
 
 type GroupKey = keyof typeof GROUPS
 
-const STEPS: { n: string; g: GroupKey; t: string; p: string; d: string }[] = [
+const STEPS: {
+  n: string; g: GroupKey; t: string; p: string; d: string
+  lk: 'anicca' | 'dukkha' | 'anatta'
+}[] = [
   {
-    n: '①', g: 'prajna', t: 'Visión Correcta', p: 'Sammā Diṭṭhi',
+    n: '①', g: 'prajna', t: 'Visión Correcta', p: 'Sammā Diṭṭhi', lk: 'anicca',
     d: 'Ver la realidad tal como es: el sufrimiento existe, tiene causas, puede cesar y hay un camino hacia su cese. Comprender la impermanencia de todo lo condicionado, la insatisfacción inherente al apego y la ausencia de un yo fijo e independiente.',
   },
   {
-    n: '②', g: 'prajna', t: 'Intención Correcta', p: 'Sammā Saṅkappa',
+    n: '②', g: 'prajna', t: 'Intención Correcta', p: 'Sammā Saṅkappa', lk: 'anatta',
     d: 'Tres resoluciones que orientan el corazón: renunciar al apego y al deseo egoísta; cultivar la buena voluntad hacia todos los seres sin excepción; comprometerse a no causar daño con pensamiento, palabra ni obra. Son la fragancia que nace naturalmente de ver con claridad.',
   },
   {
-    n: '③', g: 'sila', t: 'Habla Correcta', p: 'Sammā Vācā',
+    n: '③', g: 'sila', t: 'Habla Correcta', p: 'Sammā Vācā', lk: 'dukkha',
     d: 'Hablar solo lo que es verdadero, útil, oportuno y benévolo. Abstenerse de mentir, calumniar, hablar con dureza o gastar palabras en trivialidades. Cada palabra es un acto que moldea la mente de quien la pronuncia y el mundo de quien la escucha.',
   },
   {
-    n: '④', g: 'sila', t: 'Acción Correcta', p: 'Sammā Kammanta',
+    n: '④', g: 'sila', t: 'Acción Correcta', p: 'Sammā Kammanta', lk: 'dukkha',
     d: 'Abstenerse de matar, robar y toda conducta sexual que cause daño. Los tres preceptos del cuerpo que forman la base de la ética (Sīla): protegen a todos los seres, purifican la mente del practicante y crean la confianza sin la que la comunidad no puede florecer.',
   },
   {
-    n: '⑤', g: 'sila', t: 'Sustento Correcto', p: 'Sammā Ājīva',
+    n: '⑤', g: 'sila', t: 'Sustento Correcto', p: 'Sammā Ājīva', lk: 'dukkha',
     d: 'Ganarse la vida de manera que no cause daño ni a otros seres ni a uno mismo. El Buda señaló cinco medios de vida incorrectos: comerciar con armas, seres vivos, carne, intoxicantes o venenos. El trabajo cotidiano puede ser práctica del Dharma durante ocho horas al día.',
   },
   {
-    n: '⑥', g: 'samadhi', t: 'Esfuerzo Correcto', p: 'Sammā Vāyāma',
+    n: '⑥', g: 'samadhi', t: 'Esfuerzo Correcto', p: 'Sammā Vāyāma', lk: 'anicca',
     d: 'Los Cuatro Esfuerzos Correctos: impedir que surjan estados dañinos aún no surgidos; abandonar los que ya surgieron; cultivar estados sanos aún no presentes; mantener y madurar los que ya han surgido. La voluntad diligente que sostiene la práctica sin caer en el esfuerzo crispado ni en la pereza.',
   },
   {
-    n: '⑦', g: 'samadhi', t: 'Atención Correcta', p: 'Sammā Sati',
+    n: '⑦', g: 'samadhi', t: 'Atención Correcta', p: 'Sammā Sati', lk: 'anicca',
     d: 'Presencia plena sobre las cuatro bases: el cuerpo y sus sensaciones físicas; las tonalidades hedónicas (agradable, desagradable, neutro); los estados de la mente; los fenómenos mentales y su relación con el Dharma. Atención sin aferramiento ni rechazo, que observa cómo surgen y cesan todas las cosas.',
   },
   {
-    n: '⑧', g: 'samadhi', t: 'Concentración Correcta', p: 'Sammā Samādhi',
+    n: '⑧', g: 'samadhi', t: 'Concentración Correcta', p: 'Sammā Samādhi', lk: 'anatta',
     d: 'Los cuatro jhānas: etapas de unificación progresiva en las que la mente se estabiliza, se purifica y se ilumina desde adentro. En la calma luminosa del cuarto jhāna, con ecuanimidad perfecta, la sabiduría madura como fruto. El Sendero completo converge aquí.',
   },
 ]
+
+const TRILAK = {
+  anicca: { label: '✦ Anicca · Todo surge y cesa',            color: '#7cc8f0' },
+  dukkha: { label: '● Dukkha · El apego ralentiza el camino', color: '#c87890' },
+  anatta: { label: '◯ Anattā · El yo se disuelve sin acción', color: '#90c8a8' },
+}
 
 interface Station {
   x: number; learned: boolean; glow: number
@@ -58,6 +67,10 @@ interface ConceptData {
   groupColor: string; groupName: string; num: string
   title: string; pali: string; text?: string
   stepNum?: number; totalSteps?: number
+  lk?: 'anicca' | 'dukkha' | 'anatta'
+}
+interface Petal {
+  x: number; y: number; vx: number; vy: number; life: number; maxLife: number; color: string
 }
 
 export default function Game() {
@@ -86,6 +99,13 @@ export default function Game() {
   const closeConceptRef = useRef<(() => void) | null>(null)
   const startGameRef    = useRef<(() => void) | null>(null)
   const doJumpRef       = useRef<(() => void) | null>(null)
+
+  // Trilakshana mechanic refs
+  const samsaraRef    = useRef({ x: 480, speed: 0.65, pulse: 0 })
+  const idleRef       = useRef(0)
+  const petalsRef     = useRef<Petal[]>([])
+  const trilakSeenRef = useRef({ anicca: false, dukkha: false, anatta: false })
+  const trilakLabelRef= useRef<{ text: string; color: string; frames: number } | null>(null)
 
   useEffect(() => {
     stationsRef.current = STEPS.map((s, i) => ({
@@ -121,7 +141,12 @@ export default function Game() {
       phaseRef.current = 'concept'; setPhase('concept')
       activeStation.current = st
       const g = GROUPS[st.step.g]
-      setConcept({ type: 'step', groupColor: g.color, groupName: g.name, num: st.step.n, title: st.step.t, pali: st.step.p, text: st.step.d, stepNum: st.idx + 1, totalSteps: STEPS.length })
+      setConcept({
+        type: 'step', groupColor: g.color, groupName: g.name,
+        num: st.step.n, title: st.step.t, pali: st.step.p, text: st.step.d,
+        stepNum: st.idx + 1, totalSteps: STEPS.length,
+        lk: st.step.lk,
+      })
     }
 
     const closeConcept = () => {
@@ -130,6 +155,22 @@ export default function Game() {
         learnedRef.current++
         updateHud()
         play('learn')
+        // trilakshana: Anicca — petals burst from the learned lotus
+        const g2 = GROUPS[activeStation.current.step.g]
+        const sx = activeStation.current.x
+        for (let i = 0; i < 12; i++) {
+          petalsRef.current.push({
+            x: sx, y: GROUND - 18,
+            vx: (Math.random() - 0.5) * 2.2,
+            vy: -(1.8 + Math.random() * 2.4),
+            life: 0, maxLife: 55 + Math.floor(Math.random() * 45),
+            color: g2.color,
+          })
+        }
+        if (!trilakSeenRef.current.anicca) {
+          trilakSeenRef.current.anicca = true
+          trilakLabelRef.current = { ...TRILAK.anicca, frames: 130 }
+        }
       }
       activeStation.current = null
       setConcept(null)
@@ -153,12 +194,17 @@ export default function Game() {
 
     const startGame = () => {
       const monk = monkRef.current
-      Object.assign(monk, { x: 120, y: GROUND, vy: 0, face: 1, jumps: 0 })
+      Object.assign(monk, { x: 120, y: GROUND, vy: 0, face: 1, jumps: 0, speed: 3.2 })
       camXRef.current = 0; learnedRef.current = 0; activeStation.current = null
       stationsRef.current.forEach(s => { s.learned = false; s.glow = 0 })
       Object.assign(heartRef.current,  { active: false, cooldown: false })
       Object.assign(heart2Ref.current, { active: false, cooldown: false })
       brahmaSeen.current = false
+      samsaraRef.current.x = 480
+      idleRef.current = 0
+      petalsRef.current = []
+      trilakSeenRef.current = { anicca: false, dukkha: false, anatta: false }
+      trilakLabelRef.current = null
       updateHud()
       phaseRef.current = 'play'; setPhase('play')
       startAmbient()
@@ -224,7 +270,9 @@ export default function Game() {
     const drawMonk = (px: number, py: number) => {
       const monk = monkRef.current; const t = tRef.current; const lc = learnedRef.current
       const f = monk.face; const swing = Math.sin(monk.walk) * 6
-      ctx.save(); ctx.translate(px, py); ctx.scale(f, 1)
+      // trilakshana: Anattā — monk fades when standing still (the self dissolves without movement)
+      const anattaAlpha = Math.max(0.18, 1 - Math.max(0, idleRef.current - 180) / 320)
+      ctx.save(); ctx.globalAlpha = anattaAlpha; ctx.translate(px, py); ctx.scale(f, 1)
       ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(0, 2, 18, 5, 0, 0, Math.PI*2); ctx.fill()
       ctx.strokeStyle = '#caa15e'; ctx.lineWidth = 6; ctx.lineCap = 'round'
       ctx.beginPath(); ctx.moveTo(-4,-14); ctx.lineTo(-4+swing*0.4,0); ctx.stroke()
@@ -326,6 +374,7 @@ export default function Game() {
       const camX = camXRef.current; const monk = monkRef.current
       const heart = heartRef.current; const heart2 = heart2Ref.current
       const stations = stationsRef.current; const p = phaseRef.current; const t = tRef.current
+      const sam = samsaraRef.current
 
       const sky = ctx.createLinearGradient(0,0,0,H)
       sky.addColorStop(0,'#1c0f04'); sky.addColorStop(.55,'#241405'); sky.addColorStop(1,'#0c0602')
@@ -371,8 +420,63 @@ export default function Game() {
           ctx.textAlign='center'; ctx.fillText('Salta ↑↑',0,2); ctx.restore()
         }
       }
+
+      // trilakshana: Dukkha — samsara cloud (obstacle that slows the monk)
+      if (sam.x > camX - 90 && sam.x < camX + W + 90) {
+        const sp = Math.sin(sam.pulse * 0.05)
+        const gd = ctx.createRadialGradient(sam.x, GROUND-28, 4, sam.x, GROUND-28, 56)
+        gd.addColorStop(0, `rgba(55,8,88,${0.78 + sp * 0.1})`)
+        gd.addColorStop(0.55, `rgba(75,18,98,${0.35 + sp * 0.08})`)
+        gd.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = gd; ctx.beginPath(); ctx.ellipse(sam.x, GROUND-26, 56, 32, 0, 0, Math.PI*2); ctx.fill()
+        ctx.strokeStyle = `rgba(180,60,230,${0.32 + sp * 0.1})`; ctx.lineWidth = 1.4
+        for (let i = 0; i < 4; i++) {
+          const a = t * 0.04 + i * 1.57
+          ctx.beginPath()
+          ctx.moveTo(sam.x + Math.cos(a) * 24, GROUND-14 + Math.sin(a) * 11)
+          ctx.quadraticCurveTo(sam.x + Math.cos(a+0.8) * 10, GROUND-38, sam.x + Math.cos(a+1.6) * 28, GROUND-56 + Math.sin(a+1.1) * 9)
+          ctx.stroke()
+        }
+      }
+
       drawMonk(monk.x, monk.y)
+
+      // trilakshana: Anicca — petals rise and fade (showing all things arise and cease)
+      for (const pe of petalsRef.current) {
+        ctx.globalAlpha = (1 - pe.life / pe.maxLife) * 0.9
+        ctx.fillStyle = pe.color
+        ctx.beginPath(); ctx.ellipse(pe.x, pe.y, 3.8, 2.2, pe.life * 0.13, 0, Math.PI*2); ctx.fill()
+      }
+      ctx.globalAlpha = 1
+
+      // trilakshana: Anattā — dissolving whisper when idle
+      if (idleRef.current > 230) {
+        const af = Math.min(1, (idleRef.current - 230) / 80)
+        ctx.globalAlpha = af * 0.75
+        ctx.fillStyle = '#90c8a8'
+        ctx.font = "400 italic 11px 'Lora',serif"
+        ctx.textAlign = 'center'
+        ctx.fillText('…el yo se disuelve…', monk.x, monk.y - monk.h - 24)
+        ctx.globalAlpha = 1
+      }
+
       ctx.restore()
+
+      // trilakshana: floating label banner (screen-space notification)
+      if (trilakLabelRef.current) {
+        const lbl = trilakLabelRef.current
+        const la = lbl.frames > 24 ? 1 : lbl.frames / 24
+        ctx.save(); ctx.globalAlpha = la
+        ctx.font = "600 12px 'Outfit',sans-serif"
+        const tw = ctx.measureText(lbl.text).width
+        ctx.fillStyle = 'rgba(10,4,2,.9)'; roundRect(W/2 - tw/2 - 16, 56, tw + 32, 28, 8); ctx.fill()
+        ctx.strokeStyle = hexA(lbl.color, 0.55); ctx.lineWidth = 1
+        roundRect(W/2 - tw/2 - 16, 56, tw + 32, 28, 8); ctx.stroke()
+        ctx.fillStyle = lbl.color; ctx.textAlign = 'center'; ctx.fillText(lbl.text, W/2, 75)
+        ctx.restore()
+        lbl.frames--
+        if (lbl.frames <= 0) trilakLabelRef.current = null
+      }
     }
 
     const update = () => {
@@ -380,6 +484,14 @@ export default function Game() {
       const monk = monkRef.current; const heart = heartRef.current; const heart2 = heart2Ref.current
       if (p !== 'play') { stations.forEach(s => { if (s.learned) s.glow = Math.min(1,s.glow+.05) }); return }
       const keys = keysRef.current
+      const sam = samsaraRef.current
+
+      // trilakshana: Dukkha — samsara cloud drifts through the world
+      sam.x += sam.speed; sam.pulse++
+      if (sam.x > BODHI_X + 160) sam.x = 260
+      const samsaraHit = Math.abs(monk.x - sam.x) < 55
+      monk.speed = samsaraHit ? 1.55 : 3.2
+
       const left = keys['arrowleft']||keys['a']; const right = keys['arrowright']||keys['d']
       let moving = false
       if (left)  { monk.x -= monk.speed; monk.face = -1; moving = true }
@@ -411,6 +523,24 @@ export default function Game() {
         const touching = dx<26 && heart2.y>=(monk.y-monk.h-6) && heart2.y<=(monk.y+6)
         if (touching && !heart2.cooldown) { openGratitud(); heart2.cooldown = true }
         if (!touching) heart2.cooldown = false
+      }
+
+      // trilakshana: first-time notifications
+      if (samsaraHit && !trilakSeenRef.current.dukkha) {
+        trilakSeenRef.current.dukkha = true
+        trilakLabelRef.current = { ...TRILAK.dukkha, frames: 130 }
+      }
+      // trilakshana: Anattā — idle counter
+      moving ? (idleRef.current = 0) : idleRef.current++
+      if (idleRef.current === 300 && !trilakSeenRef.current.anatta) {
+        trilakSeenRef.current.anatta = true
+        trilakLabelRef.current = { ...TRILAK.anatta, frames: 130 }
+      }
+      // trilakshana: Anicca — update petals
+      for (let i = petalsRef.current.length - 1; i >= 0; i--) {
+        const pe = petalsRef.current[i]
+        pe.x += pe.vx; pe.y += pe.vy; pe.vy += 0.045; pe.life++
+        if (pe.life >= pe.maxLife) petalsRef.current.splice(i, 1)
       }
     }
 
@@ -478,6 +608,13 @@ export default function Game() {
               <div className="num">{concept.num}</div>
               <h2>{concept.title}</h2>
               <div className="pali">{concept.pali}</div>
+              {concept.lk && (
+                <div className={`trilak-badge trilak-${concept.lk}`}>
+                  {concept.lk === 'anicca' ? '✦ Anicca · Impermanencia' :
+                   concept.lk === 'dukkha' ? '● Dukkha · Insatisfacción' :
+                   '◯ Anattā · No-yo'}
+                </div>
+              )}
               <div className="concept-divider" />
               {concept.type === 'step' && <p>{concept.text}</p>}
               {concept.type === 'brahma' && (
@@ -513,7 +650,7 @@ export default function Game() {
           <div className="overlay">
             <div className="big">🪷</div>
             <h2>El Camino del Monje</h2>
-            <p>Un monje emprende el Óctuple Sendero. Camina hacia la derecha y detente en cada loto de luz para aprender uno de los ocho pasos. Reúne los ocho para alcanzar la iluminación.</p>
+            <p>Un monje emprende el Óctuple Sendero. Camina, aprende cada loto de luz y evita la nube del Samsara — el apego ralentiza el camino. Detente 5 segundos y el yo comienza a disolverse.</p>
             <button className="btn" onClick={() => startGameRef.current?.()}>Comenzar el camino</button>
           </div>
         )}
@@ -523,7 +660,12 @@ export default function Game() {
           <div className="overlay">
             <div className="big">☸️</div>
             <h2>Has alcanzado el Nirvana</h2>
-            <p>El monje completó el Óctuple Sendero: Sabiduría, Ética y Concentración en perfecta armonía. La llama del sufrimiento se ha apagado.</p>
+            <p>El monje completó el Óctuple Sendero: Sabiduría, Ética y Concentración en perfecta armonía.</p>
+            <div className="trilak-summary">
+              <div className="trilak-summary-item anicca">✦ Anicca · Todo lo condicionado es impermanente</div>
+              <div className="trilak-summary-item dukkha">● Dukkha · El apego genera sufrimiento</div>
+              <div className="trilak-summary-item anatta">◯ Anattā · No existe un yo fijo e independiente</div>
+            </div>
             <div className="path-summary">
               {STEPS.map(s => (
                 <div key={s.n} className="path-step" style={{ '--step-color': GROUPS[s.g].color } as CSSProperties}>
@@ -583,7 +725,7 @@ export default function Game() {
           <kbd>M</kbd> sonido
         </span>
         <span className="touch-hint">
-          Camina con ← → · Salta para alcanzar los corazones · El monje aprende al pisar cada loto
+          Camina con ← → · Salta para alcanzar los corazones · Evita la nube oscura del Samsara
         </span>
       </div>
 
