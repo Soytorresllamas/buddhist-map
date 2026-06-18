@@ -14,8 +14,9 @@ export default defineConfig(({ command }) => ({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
-        game: path.resolve(__dirname, 'el-camino-del-monje.html'),
+        main:    path.resolve(__dirname, 'index.html'),
+        game:    path.resolve(__dirname, 'el-camino-del-monje.html'),
+        sendero: path.resolve(__dirname, 'octuple-noble-sendero.html'),
       },
     },
   }
