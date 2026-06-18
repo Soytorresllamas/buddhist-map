@@ -187,5 +187,36 @@
 
   <!-- Scripts -->
   <script src="app.js"></script>
+  <script>
+    (() => {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const cards = document.querySelectorAll('.node-card, .node-centro-container');
+
+      if (reduced) {
+        // Skip animation — content stays fully visible
+        return;
+      }
+
+      // Stagger delays: center node gets its own timing (always mid-column)
+      const order = ['node-joyas','node-marcas','node-paramitas','node-centro-container','node-inconm','node-sendero'];
+      cards.forEach(card => {
+        const key = [...card.classList].find(c => order.includes(c));
+        const idx = key ? order.indexOf(key) : 0;
+        card.classList.add('js-reveal');
+        card.style.transitionDelay = `${idx * 70}ms`;
+      });
+
+      const obs = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+
+      cards.forEach(card => obs.observe(card));
+    })();
+  </script>
 </body>
 </html>

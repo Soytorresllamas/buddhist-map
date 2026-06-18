@@ -43,9 +43,13 @@
   --font-body: 'Outfit', sans-serif;
   --font-quote: 'Lora', serif;
 
+  /* Easing curves */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Transitions */
-  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.18s var(--ease-out-quart);
+  --transition-normal: 0.35s var(--ease-out-quart);
 }
 
 * {
@@ -72,7 +76,6 @@ body {
 header {
   text-align: center;
   margin-bottom: 3.5rem;
-  animation: fadeInDown 1s var(--transition-normal);
 }
 
 .map-icon {
@@ -80,7 +83,8 @@ header {
   margin-bottom: 0.5rem;
   display: inline-block;
   filter: drop-shadow(0 0 10px var(--color-gold-glow));
-  animation: float 4s ease-in-out infinite;
+  animation: reveal-up 0.9s var(--ease-out-expo) both,
+             float 5s ease-in-out 1s infinite;
 }
 
 h1 {
@@ -91,6 +95,7 @@ h1 {
   text-transform: uppercase;
   margin-bottom: 0.5rem;
   text-shadow: 0 0 20px rgba(212, 168, 67, 0.3);
+  animation: reveal-up 0.9s var(--ease-out-expo) 0.12s both;
 }
 
 @media (min-width: 768px) {
@@ -104,6 +109,7 @@ h1 {
   font-style: italic;
   font-size: 1rem;
   color: var(--color-text-muted);
+  animation: reveal-up 0.9s var(--ease-out-expo) 0.22s both;
 }
 
 .play-cta {
@@ -120,6 +126,8 @@ h1 {
   text-decoration: none;
   box-shadow: 0 8px 26px -8px var(--color-gold-glow);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  animation: reveal-up 0.9s var(--ease-out-expo) 0.35s both,
+             pulse-glow 3.5s ease-in-out 1.8s infinite;
 }
 
 .play-cta:hover,
@@ -127,6 +135,7 @@ h1 {
   transform: translateY(-2px);
   box-shadow: 0 12px 30px -6px var(--color-gold);
   outline: none;
+  animation-play-state: paused;
 }
 
 /* Map Layout Container */
@@ -153,7 +162,8 @@ h1 {
   fill: none;
   stroke: rgba(212, 168, 67, 0.15);
   stroke-width: 2px;
-  transition: stroke var(--transition-normal), stroke-width var(--transition-normal);
+  transition: stroke 0.4s var(--ease-out-quart), stroke-width 0.4s var(--ease-out-quart),
+              opacity 0.4s var(--ease-out-quart), filter 0.4s var(--ease-out-quart);
 }
 
 .connection-path.active {
@@ -251,7 +261,22 @@ h1 {
   position: relative;
 }
 
+/* JS-driven entrance: applied only when JS runs, so headless/no-JS stays visible */
+.node-card.js-reveal {
+  opacity: 0;
+  transform: translateY(22px) scale(0.97);
+  transition: opacity 0.65s var(--ease-out-expo), transform 0.65s var(--ease-out-expo),
+              box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+.node-card.js-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 .node-card:hover {
+  transform: translateY(-5px) scale(1.02);
+}
+.node-card.js-reveal.revealed:hover {
   transform: translateY(-5px) scale(1.02);
 }
 
@@ -585,12 +610,16 @@ h1 {
   overflow-y: auto;
   position: relative;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-  transform: translateY(30px);
-  transition: transform var(--transition-normal);
+  transform: translateY(18px) scale(0.97);
+  filter: blur(3px);
+  transition: transform 0.45s var(--ease-out-expo),
+              opacity 0.3s ease,
+              filter 0.35s var(--ease-out-expo);
 }
 
 .modal-overlay.open .modal-content {
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  filter: blur(0);
 }
 
 .modal-close {
@@ -672,19 +701,49 @@ h1 {
 }
 
 @keyframes dash {
-  to {
-    stroke-dashoffset: -1000;
-  }
+  to { stroke-dashoffset: -1000; }
 }
 
 @keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reveal-up {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(16px);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 8px 26px -8px var(--color-gold-glow); }
+  50%       { box-shadow: 0 8px 38px 2px rgba(212, 168, 67, 0.42); }
+}
+
+/* Reduced motion — WCAG AA */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Ensure hidden-by-animation elements become visible immediately */
+  .node-card.js-reveal,
+  .node-centro-container.js-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 }
 
