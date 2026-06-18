@@ -12,5 +12,11 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        game: path.resolve(__dirname, 'el-camino-del-monje.html'),
+      },
+    },
   }
 }))
