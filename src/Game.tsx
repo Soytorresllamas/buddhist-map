@@ -72,6 +72,12 @@ interface ConceptData {
 interface Petal {
   x: number; y: number; vx: number; vy: number; life: number; maxLife: number; color: string
 }
+interface SpeechWord {
+  x: number; y: number; vy: number; kind: boolean; word: string; life: number; maxLife: number; hit: boolean
+}
+
+const SPEECH_KIND    = ['Verdad', 'Mettā', 'Útil', 'Suave', 'Oportuno', 'Karuṇā']
+const SPEECH_HARMFUL = ['Mentira', 'Calumnia', 'Dureza', 'Trivial']
 
 export default function Game() {
   const [phase, setPhase]         = useState<'start'|'play'|'concept'|'done'>('start')
@@ -109,6 +115,9 @@ export default function Game() {
   const petalsRef     = useRef<Petal[]>([])
   const trilakSeenRef = useRef({ anicca: false, dukkha: false, anatta: false })
   const trilakLabelRef= useRef<{ text: string; color: string; frames: number } | null>(null)
+  // Habla Correcta mechanic refs
+  const speechWordsRef  = useRef<SpeechWord[]>([])
+  const speechEffectRef = useRef({ frames: 0, kind: true })
 
   useEffect(() => {
     stationsRef.current = STEPS.map((s, i) => ({
@@ -243,6 +252,8 @@ export default function Game() {
       petalsRef.current = []
       trilakSeenRef.current = { anicca: false, dukkha: false, anatta: false }
       trilakLabelRef.current = null
+      speechWordsRef.current = []
+      speechEffectRef.current = { frames: 0, kind: true }
       updateHud()
       phaseRef.current = 'play'; setPhase('play')
       startAmbient()
@@ -310,6 +321,15 @@ export default function Game() {
       const f = monk.face; const swing = Math.sin(monk.walk) * 6
       // trilakshana: Anattā — monk fades when standing still (the self dissolves without movement)
       const anattaAlpha = Math.max(0.18, 1 - Math.max(0, idleRef.current - 180) / 320)
+      // Habla Correcta — aura on monk (green=boost, red=slow)
+      const spe = speechEffectRef.current
+      if (spe.frames > 0) {
+        const alpha = Math.min(1, spe.frames / 18) * 0.42
+        const c = spe.kind ? `rgba(55,210,95,${alpha})` : `rgba(215,55,55,${alpha})`
+        const ag = ctx.createRadialGradient(px, py - 30, 6, px, py - 30, 44)
+        ag.addColorStop(0, c); ag.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = ag; ctx.beginPath(); ctx.ellipse(px, py - 30, 44, 44, 0, 0, Math.PI*2); ctx.fill()
+      }
       ctx.save(); ctx.globalAlpha = anattaAlpha; ctx.translate(px, py); ctx.scale(f, 1)
       ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(0, 2, 18, 5, 0, 0, Math.PI*2); ctx.fill()
       ctx.strokeStyle = '#caa15e'; ctx.lineWidth = 6; ctx.lineCap = 'round'
@@ -507,6 +527,25 @@ export default function Game() {
       }
       ctx.globalAlpha = 1
 
+      // Habla Correcta — falling words
+      for (const sw of speechWordsRef.current) {
+        const fade = sw.hit ? Math.max(0, 1 - (sw.life - (sw.maxLife - 18)) / 18)
+                            : Math.min(1, sw.life / 12) * (1 - sw.life / sw.maxLife + 0.12)
+        ctx.globalAlpha = Math.min(1, Math.max(0, fade))
+        ctx.font = "700 15px 'Outfit',sans-serif"
+        ctx.textAlign = 'center'
+        if (sw.kind) {
+          ctx.fillStyle = '#5deca2'
+          ctx.shadowColor = 'rgba(55,220,110,0.7)'; ctx.shadowBlur = 8
+        } else {
+          ctx.fillStyle = '#f05050'
+          ctx.shadowColor = 'rgba(220,55,55,0.7)'; ctx.shadowBlur = 8
+        }
+        ctx.fillText(sw.word, sw.x, sw.y)
+        ctx.shadowBlur = 0
+      }
+      ctx.globalAlpha = 1
+
       // trilakshana: Anattā — dissolving whisper when idle
       if (idleRef.current > 230) {
         const af = Math.min(1, (idleRef.current - 230) / 80)
@@ -548,7 +587,8 @@ export default function Game() {
       sam.x += sam.speed; sam.pulse++
       if (sam.x > BODHI_X + 160) sam.x = 260
       const samsaraHit = Math.abs(monk.x - sam.x) < 55
-      monk.speed = samsaraHit ? 0.9 : 3.2
+      const speechSlow = speechEffectRef.current.frames > 0 && !speechEffectRef.current.kind
+      monk.speed = samsaraHit ? 0.9 : speechSlow ? 1.0 : 3.2
 
       const left = keys['arrowleft']||keys['a']; const right = keys['arrowright']||keys['d']
       let moving = false
@@ -600,6 +640,30 @@ export default function Game() {
         pe.x += pe.vx; pe.y += pe.vy; pe.vy += 0.045; pe.life++
         if (pe.life >= pe.maxLife) petalsRef.current.splice(i, 1)
       }
+      // Habla Correcta — lluvia de palabras cerca de estación ③
+      const s3 = stations[2]
+      if (!s3.learned && tRef.current % 28 === 0) {
+        const kind = Math.random() > 0.38
+        const list = kind ? SPEECH_KIND : SPEECH_HARMFUL
+        speechWordsRef.current.push({
+          x: s3.x + (Math.random() - 0.5) * 280,
+          y: 18 + Math.random() * 20,
+          vy: 1.2 + Math.random() * 0.8,
+          kind, word: list[Math.floor(Math.random() * list.length)],
+          life: 0, maxLife: 220, hit: false,
+        })
+      }
+      for (let i = speechWordsRef.current.length - 1; i >= 0; i--) {
+        const sw = speechWordsRef.current[i]
+        sw.y += sw.vy; sw.life++
+        if (!sw.hit && Math.abs(sw.x - monk.x) < 34 && Math.abs(sw.y - (monk.y - 30)) < 30) {
+          sw.hit = true
+          sw.life = Math.max(sw.life, sw.maxLife - 18)
+          speechEffectRef.current = { frames: 65, kind: sw.kind }
+        }
+        if (sw.life >= sw.maxLife || sw.y > GROUND + 10) speechWordsRef.current.splice(i, 1)
+      }
+      if (speechEffectRef.current.frames > 0) speechEffectRef.current.frames--
     }
 
     updateHud()
