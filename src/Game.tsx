@@ -88,6 +88,8 @@ const DILEMMAS: Omit<ActionDilemma, 'frames'>[] = [
 
 const SPEECH_KIND    = ['Verdad', 'Mettā', 'Útil', 'Suave', 'Oportuno', 'Karuṇā', 'Claridad', 'Integridad']
 const SPEECH_HARMFUL = ['Mentira', 'Calumnia', 'Dureza', 'Trivial', 'Engaño', 'Embriaguez']
+const LIFE_GOOD      = ['Enseñar', 'Sanar', 'Cultivar', 'Crear', 'Servir', 'Arte']
+const LIFE_BAD       = ['Armas', 'Veneno', 'Tráfico', 'Intoxicantes', 'Fraude']
 
 export default function Game() {
   const [phase, setPhase]         = useState<'start'|'play'|'concept'|'done'>('start')
@@ -132,6 +134,9 @@ export default function Game() {
   const dilemmaRef         = useRef<ActionDilemma | null>(null)
   const actionEffectRef    = useRef({ frames: 0, kind: true })
   const s4DilemmaTimerRef  = useRef(80)
+  // Sustento Correcto mechanic refs
+  const lifeWordsRef       = useRef<SpeechWord[]>([])
+  const lifeEffectRef      = useRef({ frames: 0, kind: true })
 
   useEffect(() => {
     stationsRef.current = STEPS.map((s, i) => ({
@@ -271,6 +276,8 @@ export default function Game() {
       dilemmaRef.current = null
       actionEffectRef.current = { frames: 0, kind: true }
       s4DilemmaTimerRef.current = 80
+      lifeWordsRef.current = []
+      lifeEffectRef.current = { frames: 0, kind: true }
       updateHud()
       phaseRef.current = 'play'; setPhase('play')
       startAmbient()
@@ -346,6 +353,15 @@ export default function Game() {
         const ag0 = ctx.createRadialGradient(px, py - 30, 6, px, py - 30, 48)
         ag0.addColorStop(0, c0); ag0.addColorStop(1, 'rgba(0,0,0,0)')
         ctx.fillStyle = ag0; ctx.beginPath(); ctx.ellipse(px, py - 30, 48, 48, 0, 0, Math.PI*2); ctx.fill()
+      }
+      // Sustento Correcto — aura ámbar (correcto) / roja (incorrecto)
+      const le = lifeEffectRef.current
+      if (le.frames > 0) {
+        const alphaL = Math.min(1, le.frames / 18) * 0.42
+        const cL = le.kind ? `rgba(212,148,30,${alphaL})` : `rgba(215,55,55,${alphaL})`
+        const agL = ctx.createRadialGradient(px, py - 30, 6, px, py - 30, 44)
+        agL.addColorStop(0, cL); agL.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = agL; ctx.beginPath(); ctx.ellipse(px, py - 30, 44, 44, 0, 0, Math.PI*2); ctx.fill()
       }
       // Habla Correcta — aura on monk (green=boost, red=slow)
       const spe = speechEffectRef.current
@@ -553,6 +569,25 @@ export default function Game() {
       }
       ctx.globalAlpha = 1
 
+      // Sustento Correcto — mercancías cayendo
+      for (const lw of lifeWordsRef.current) {
+        const fadeL = lw.hit ? Math.max(0, 1 - (lw.life - (lw.maxLife - 18)) / 18)
+                              : Math.min(1, lw.life / 12) * (1 - lw.life / lw.maxLife + 0.12)
+        ctx.globalAlpha = Math.min(1, Math.max(0, fadeL))
+        ctx.font = "700 14px 'Outfit',sans-serif"
+        ctx.textAlign = 'center'
+        if (lw.kind) {
+          ctx.fillStyle = '#d4a843'
+          ctx.shadowColor = 'rgba(212,168,67,0.75)'; ctx.shadowBlur = 10
+        } else {
+          ctx.fillStyle = '#c03030'
+          ctx.shadowColor = 'rgba(180,40,40,0.65)'; ctx.shadowBlur = 8
+        }
+        ctx.fillText(lw.word, lw.x, lw.y)
+        ctx.shadowBlur = 0
+      }
+      ctx.globalAlpha = 1
+
       // Habla Correcta — falling words
       for (const sw of speechWordsRef.current) {
         const fade = sw.hit ? Math.max(0, 1 - (sw.life - (sw.maxLife - 18)) / 18)
@@ -663,7 +698,12 @@ export default function Game() {
       const speechSlow  = speechEffectRef.current.frames > 0 && !speechEffectRef.current.kind
       const actionSlow  = actionEffectRef.current.frames > 0 && !actionEffectRef.current.kind
       const actionBoost = actionEffectRef.current.frames > 0 &&  actionEffectRef.current.kind
-      monk.speed = samsaraHit ? 0.9 : (speechSlow || actionSlow) ? 1.0 : actionBoost ? 4.6 : 3.2
+      const lifeSlow    = lifeEffectRef.current.frames > 0   && !lifeEffectRef.current.kind
+      const lifeBoost   = lifeEffectRef.current.frames > 0   &&  lifeEffectRef.current.kind
+      monk.speed = samsaraHit ? 0.9
+        : (speechSlow || actionSlow || lifeSlow) ? 1.0
+        : (actionBoost || lifeBoost) ? 4.6
+        : 3.2
 
       // Acción Correcta — dilema activo (Z/X no conflictan con movimiento)
       const activeDilemma = dilemmaRef.current
@@ -756,6 +796,30 @@ export default function Game() {
         if (sw.life >= sw.maxLife || sw.y > GROUND + 10) speechWordsRef.current.splice(i, 1)
       }
       if (speechEffectRef.current.frames > 0) speechEffectRef.current.frames--
+      // Sustento Correcto — lluvia de mercancías cerca de estación ⑤
+      const s5 = stations[4]
+      if (!s5.learned && tRef.current % 32 === 0) {
+        const kind = Math.random() > 0.4
+        const list = kind ? LIFE_GOOD : LIFE_BAD
+        lifeWordsRef.current.push({
+          x: s5.x + (Math.random() - 0.5) * 300,
+          y: 14 + Math.random() * 20,
+          vy: kind ? 0.9 + Math.random() * 0.5 : 1.6 + Math.random() * 0.8,
+          kind, word: list[Math.floor(Math.random() * list.length)],
+          life: 0, maxLife: 240, hit: false,
+        })
+      }
+      for (let i = lifeWordsRef.current.length - 1; i >= 0; i--) {
+        const lw = lifeWordsRef.current[i]
+        lw.y += lw.vy; lw.life++
+        if (!lw.hit && Math.abs(lw.x - monk.x) < 34 && Math.abs(lw.y - (monk.y - 30)) < 30) {
+          lw.hit = true
+          lw.life = Math.max(lw.life, lw.maxLife - 18)
+          lifeEffectRef.current = { frames: 65, kind: lw.kind }
+        }
+        if (lw.life >= lw.maxLife || lw.y > GROUND + 10) lifeWordsRef.current.splice(i, 1)
+      }
+      if (lifeEffectRef.current.frames > 0) lifeEffectRef.current.frames--
       // Acción Correcta — spawn dilema por zona (timer, no módulo)
       const s4 = stations[3]
       if (!s4.learned) {
