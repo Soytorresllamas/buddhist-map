@@ -75,9 +75,19 @@ interface Petal {
 interface SpeechWord {
   x: number; y: number; vy: number; kind: boolean; word: string; life: number; maxLife: number; hit: boolean
 }
+interface ActionDilemma {
+  prompt: string; aLabel: string; dLabel: string; correctKey: 'a' | 'd'; frames: number
+}
+const DILEMMAS: Omit<ActionDilemma, 'frames'>[] = [
+  { prompt: 'Un ave herida en el camino',        aLabel: 'Cuidarla',      dLabel: 'Pasar de largo', correctKey: 'a' },
+  { prompt: 'Una bolsa ajena en el suelo',       aLabel: 'Tomarla',       dLabel: 'Dejarla',         correctKey: 'd' },
+  { prompt: 'Un ser pide refugio y amparo',      aLabel: 'Acogerlo',      dLabel: 'Rechazarlo',      correctKey: 'a' },
+  { prompt: 'Una trampa para animales',          aLabel: 'Seguir',        dLabel: 'Desactivarla',    correctKey: 'd' },
+  { prompt: 'Alguien llora al borde del camino', aLabel: 'Ignorar',      dLabel: 'Ayudar',          correctKey: 'd' },
+]
 
-const SPEECH_KIND    = ['Verdad', 'Mettā', 'Útil', 'Suave', 'Oportuno', 'Karuṇā']
-const SPEECH_HARMFUL = ['Mentira', 'Calumnia', 'Dureza', 'Trivial']
+const SPEECH_KIND    = ['Verdad', 'Mettā', 'Útil', 'Suave', 'Oportuno', 'Karuṇā', 'Claridad', 'Integridad']
+const SPEECH_HARMFUL = ['Mentira', 'Calumnia', 'Dureza', 'Trivial', 'Engaño', 'Embriaguez']
 
 export default function Game() {
   const [phase, setPhase]         = useState<'start'|'play'|'concept'|'done'>('start')
@@ -118,6 +128,9 @@ export default function Game() {
   // Habla Correcta mechanic refs
   const speechWordsRef  = useRef<SpeechWord[]>([])
   const speechEffectRef = useRef({ frames: 0, kind: true })
+  // Acción Correcta mechanic refs
+  const dilemmaRef      = useRef<ActionDilemma | null>(null)
+  const actionEffectRef = useRef({ frames: 0, kind: true })
 
   useEffect(() => {
     stationsRef.current = STEPS.map((s, i) => ({
@@ -254,6 +267,8 @@ export default function Game() {
       trilakLabelRef.current = null
       speechWordsRef.current = []
       speechEffectRef.current = { frames: 0, kind: true }
+      dilemmaRef.current = null
+      actionEffectRef.current = { frames: 0, kind: true }
       updateHud()
       phaseRef.current = 'play'; setPhase('play')
       startAmbient()
@@ -321,6 +336,15 @@ export default function Game() {
       const f = monk.face; const swing = Math.sin(monk.walk) * 6
       // trilakshana: Anattā — monk fades when standing still (the self dissolves without movement)
       const anattaAlpha = Math.max(0.18, 1 - Math.max(0, idleRef.current - 180) / 320)
+      // Acción Correcta — aura dorada (correcto) / roja (incorrecto)
+      const ae = actionEffectRef.current
+      if (ae.frames > 0) {
+        const alpha0 = Math.min(1, ae.frames / 18) * 0.45
+        const c0 = ae.kind ? `rgba(212,168,67,${alpha0})` : `rgba(215,55,55,${alpha0})`
+        const ag0 = ctx.createRadialGradient(px, py - 30, 6, px, py - 30, 48)
+        ag0.addColorStop(0, c0); ag0.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = ag0; ctx.beginPath(); ctx.ellipse(px, py - 30, 48, 48, 0, 0, Math.PI*2); ctx.fill()
+      }
       // Habla Correcta — aura on monk (green=boost, red=slow)
       const spe = speechEffectRef.current
       if (spe.frames > 0) {
@@ -559,6 +583,30 @@ export default function Game() {
 
       ctx.restore()
 
+      // Acción Correcta — tarjeta de dilema (screen space)
+      if (dilemmaRef.current) {
+        const d = dilemmaRef.current
+        const fa = Math.min(
+          d.frames > 80 ? (90 - d.frames) / 10 : 1,
+          d.frames < 10 ? d.frames / 10 : 1
+        )
+        ctx.save(); ctx.globalAlpha = Math.max(0, fa)
+        ctx.fillStyle = 'rgba(10,4,2,0.93)'
+        roundRect(W/2 - 168, H/2 - 58, 336, 110, 12); ctx.fill()
+        ctx.strokeStyle = 'rgba(212,168,67,0.45)'; ctx.lineWidth = 1
+        roundRect(W/2 - 168, H/2 - 58, 336, 110, 12); ctx.stroke()
+        ctx.fillStyle = '#f0e6c8'; ctx.font = "italic 500 13px 'Lora',serif"; ctx.textAlign = 'center'
+        ctx.fillText(d.prompt, W/2, H/2 - 28)
+        ctx.font = "700 13px 'Outfit',sans-serif"; ctx.fillStyle = '#d4a843'
+        ctx.fillText(`[← A]  ${d.aLabel}`, W/2 - 76, H/2 + 8)
+        ctx.fillText(`${d.dLabel}  [D →]`, W/2 + 76, H/2 + 8)
+        const prog = d.frames / 90
+        ctx.fillStyle = 'rgba(212,168,67,0.14)'; roundRect(W/2 - 136, H/2 + 30, 272, 5, 2); ctx.fill()
+        ctx.fillStyle = `rgba(212,168,67,${0.45 + 0.4 * (1 - prog)})`
+        roundRect(W/2 - 136, H/2 + 30, 272 * prog, 5, 2); ctx.fill()
+        ctx.restore()
+      }
+
       // trilakshana: floating label banner (screen-space notification)
       if (trilakLabelRef.current) {
         const lbl = trilakLabelRef.current
@@ -587,13 +635,37 @@ export default function Game() {
       sam.x += sam.speed; sam.pulse++
       if (sam.x > BODHI_X + 160) sam.x = 260
       const samsaraHit = Math.abs(monk.x - sam.x) < 55
-      const speechSlow = speechEffectRef.current.frames > 0 && !speechEffectRef.current.kind
-      monk.speed = samsaraHit ? 0.9 : speechSlow ? 1.0 : 3.2
+      const speechSlow  = speechEffectRef.current.frames > 0 && !speechEffectRef.current.kind
+      const actionSlow  = actionEffectRef.current.frames > 0 && !actionEffectRef.current.kind
+      const actionBoost = actionEffectRef.current.frames > 0 &&  actionEffectRef.current.kind
+      monk.speed = samsaraHit ? 0.9 : (speechSlow || actionSlow) ? 1.0 : actionBoost ? 4.6 : 3.2
+
+      // Acción Correcta — dilema activo
+      let dilemmaActive = false
+      const activeDilemma = dilemmaRef.current
+      if (activeDilemma) {
+        dilemmaActive = true
+        activeDilemma.frames--
+        if (activeDilemma.frames < 76 && activeDilemma.frames > 0) {
+          const pressed = keys['a'] || keys['arrowleft'] ? 'a' : keys['d'] || keys['arrowright'] ? 'd' : null
+          if (pressed) {
+            actionEffectRef.current = { frames: 70, kind: pressed === activeDilemma.correctKey }
+            dilemmaRef.current = null; dilemmaActive = false
+          }
+        }
+        if (activeDilemma.frames <= 0) {
+          actionEffectRef.current = { frames: 50, kind: false } // inacción = acción incorrecta
+          dilemmaRef.current = null; dilemmaActive = false
+        }
+      }
+      if (actionEffectRef.current.frames > 0) actionEffectRef.current.frames--
 
       const left = keys['arrowleft']||keys['a']; const right = keys['arrowright']||keys['d']
       let moving = false
-      if (left)  { monk.x -= monk.speed; monk.face = -1; moving = true }
-      if (right) { monk.x += monk.speed; monk.face =  1; moving = true }
+      if (!dilemmaActive) {
+        if (left)  { monk.x -= monk.speed; monk.face = -1; moving = true }
+        if (right) { monk.x += monk.speed; monk.face =  1; moving = true }
+      }
       monk.x = Math.max(40, Math.min(BODHI_X-10, monk.x))
       monk.walk = moving ? (monk.walk+.25) : 0
       monk.vy += 0.55; monk.y += monk.vy
@@ -664,6 +736,12 @@ export default function Game() {
         if (sw.life >= sw.maxLife || sw.y > GROUND + 10) speechWordsRef.current.splice(i, 1)
       }
       if (speechEffectRef.current.frames > 0) speechEffectRef.current.frames--
+      // Acción Correcta — spawn dilema cerca de estación ④
+      const s4 = stations[3]
+      if (!s4.learned && !dilemmaRef.current && Math.abs(monk.x - s4.x) < 400 && tRef.current % 210 === 0) {
+        const d = DILEMMAS[Math.floor(Math.random() * DILEMMAS.length)]
+        dilemmaRef.current = { ...d, frames: 90 }
+      }
     }
 
     updateHud()
