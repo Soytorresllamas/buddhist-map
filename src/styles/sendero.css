@@ -289,7 +289,8 @@ strong { font-weight: 600; }
   height: 100%;
   background: var(--gold);
   border-radius: 2px;
-  transition: width .5s linear;
+  transform-origin: left center;
+  transition: transform .5s linear;
 }
 
 .audio-time {
@@ -381,12 +382,10 @@ strong { font-weight: 600; }
 
 .truth-card {
   border-radius: var(--radius);
-  border-left: 3px solid var(--truth-color);
   background: rgba(0,0,0,.25);
   padding: 1.25rem 1.5rem;
-  border-top: 1px solid rgba(255,255,255,.06);
-  border-right: 1px solid rgba(255,255,255,.04);
-  border-bottom: 1px solid rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  border-top: 2px solid var(--truth-color);
 }
 
 .truth-number {
@@ -1179,3 +1178,124 @@ strong { font-weight: 600; }
   .content-inner { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }
+
+/* ── Theme toggle button ─────────────────────────────────────────── */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  color: var(--gold-bright);
+  transition: background .2s;
+}
+.theme-toggle:hover { background: rgba(201,162,39,.15); }
+
+/* ── Light theme ─────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --night:     #f2e6d4;
+  --lacquer:   #e8d9c4;
+  --bark:      #ddd0bc;
+  --earth:     #1e1006;
+  --parchment: #2a1a0c;
+  --palm:      #1a1004;
+  --ink:       #f2e6d4;
+  --muted:     rgba(30,16,6,.50);
+  --gold-dim:  rgba(150,100,15,.22);
+  --gold-glow: rgba(150,100,15,.05);
+}
+
+/* Surfaces */
+[data-theme="light"] .card,
+[data-theme="light"] .katannuta-bonus,
+[data-theme="light"] .quiz-explanation,
+[data-theme="light"] .factor-box {
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.1);
+}
+
+[data-theme="light"] .truth-card {
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.09);
+  border-top-color: var(--truth-color);
+}
+
+[data-theme="light"] .khandha-card,
+[data-theme="light"] .laksana-card,
+[data-theme="light"] .jhana-card,
+[data-theme="light"] .nivarana-card {
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.09);
+}
+
+[data-theme="light"] .path-btn { background: rgba(0,0,0,.04); }
+[data-theme="light"] .path-btn:hover { background: rgba(0,0,0,.07); }
+
+[data-theme="light"] .quiz-option {
+  background: rgba(0,0,0,.04);
+  border-color: rgba(0,0,0,.1);
+  color: rgba(30,16,6,.78);
+}
+[data-theme="light"] .quiz-option:hover:not(:disabled) {
+  background: rgba(201,162,39,.1);
+}
+
+/* Prose text that uses hardcoded light rgba in CSS classes */
+[data-theme="light"] .section-intro,
+[data-theme="light"] .truth-body,
+[data-theme="light"] .factor-body,
+[data-theme="light"] .factor-box-text,
+[data-theme="light"] .khandha-desc,
+[data-theme="light"] .laksana-body,
+[data-theme="light"] .laksana-practice,
+[data-theme="light"] .jhana-desc,
+[data-theme="light"] .jhana-analogy,
+[data-theme="light"] .nivarana-desc,
+[data-theme="light"] .nivarana-antidote,
+[data-theme="light"] .nivarana-jhana { color: rgba(30,16,6,.75); }
+
+[data-theme="light"] .truth-practice { border-top-color: rgba(0,0,0,.1); }
+[data-theme="light"] .khandha-analogy { border-top-color: rgba(0,0,0,.09); }
+
+/* Paticca section inline-styled cards */
+[data-theme="light"] .paticca-links > div {
+  background: rgba(0,0,0,.04) !important;
+  border-color: rgba(0,0,0,.09) !important;
+}
+[data-theme="light"] .paticca-links p { color: rgba(30,16,6,.75) !important; }
+
+/* Nav */
+[data-theme="light"] .nav-item { color: rgba(30,16,6,.7); }
+[data-theme="light"] .nav-item:hover { background: rgba(0,0,0,.06); }
+[data-theme="light"] .nav-item.active {
+  background: rgba(201,162,39,.15);
+  border-left-color: var(--gold-bright);
+  color: var(--palm);
+}
+
+/* Traditions table */
+[data-theme="light"] .traditions-table th { background: rgba(0,0,0,.07); }
+[data-theme="light"] .traditions-table td {
+  color: rgba(30,16,6,.8);
+  border-bottom-color: rgba(0,0,0,.07);
+}
+[data-theme="light"] .traditions-table tr:hover td { background: rgba(0,0,0,.03); }
+
+/* Traditions mobile cards inline text */
+[data-theme="light"] .traditions-mobile p { color: rgba(30,16,6,.75) !important; }
+
+/* Connection map SVG */
+[data-theme="light"] .conn-map line { stroke: rgba(30,16,6,.15); }
+[data-theme="light"] .conn-map text { fill: rgba(30,16,6,.5); }
+
+/* Audio bar */
+[data-theme="light"] .audio-bar {
+  background: rgba(0,0,0,.04);
+  border-bottom-color: rgba(0,0,0,.1);
+}
+
+/* Sidebar quote */
+[data-theme="light"] .sidebar-quote { color: rgba(30,16,6,.45); }

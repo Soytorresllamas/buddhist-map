@@ -97,7 +97,7 @@ function AudioBar({ moduleKey }: { moduleKey: string }) {
       </button>
       <span className="audio-label">Narración · {MODULE_META[moduleKey]?.title}</span>
       <div className="audio-progress">
-        <div className="audio-fill" style={{ width: `${progress}%` }} />
+        <div className="audio-fill" style={{ transform: `scaleX(${progress / 100})` }} />
       </div>
       <span className="audio-time">{time}</span>
     </div>
@@ -407,7 +407,7 @@ function PatticcaSection() {
       <p className="section-intro">
         El Paticcasamuppāda (Originación Condicionada) es la descripción más técnica del Buda sobre el mecanismo del sufrimiento. Sus doce eslabones muestran cómo, a partir de la ignorancia, surge el ciclo completo de existencia condicionada. Comprender estos doce eslabones <em>en detalle</em> es, según el Buda, sinónimo de comprender el Dharma.
       </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
+      <div className="paticca-links" style={{ display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
         {PATICCA_LINKS.map(l => (
           <div key={l.n} style={{
             display: 'flex', alignItems: 'flex-start', gap: '1rem',
@@ -771,6 +771,20 @@ function QuizSection() {
 export default function Sendero() {
   const [module, setModule] = useState<string>('explore')
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [theme, setTheme] = useState<'dark'|'light'>(() => {
+    try {
+      const saved = localStorage.getItem('dhamma-theme') as 'dark'|'light'
+      if (saved) document.documentElement.setAttribute('data-theme', saved)
+      return saved || 'dark'
+    } catch { return 'dark' }
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    try { localStorage.setItem('dhamma-theme', theme) } catch {}
+  }, [theme])
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
 
   const navigate = (key: string) => {
     setModule(key)
@@ -846,10 +860,13 @@ export default function Sendero() {
             <button className="hamburger" onClick={() => setSidebarOpen(o => !o)} aria-label="Abrir menú">
               <span /><span /><span />
             </button>
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <h1 className="header-title">{meta?.title}</h1>
               {meta?.subtitle && <p className="header-sub">{meta.subtitle}</p>}
             </div>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}>
+              {theme === 'dark' ? '☀' : '☾'}
+            </button>
           </div>
           <div className="gold-rule header-rule" />
         </header>
