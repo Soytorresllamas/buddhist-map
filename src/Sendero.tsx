@@ -266,13 +266,13 @@ function ExploreSection() {
         </p>
         <div className="card-grid card-grid-3">
           {TRAINING_CATEGORIES.map(cat => (
-            <div key={cat.key} className="card" style={{ borderColor: `${cat.color}30` }}>
+            <div key={cat.key} className="card cat-card" style={{ '--cat-color': cat.color, borderColor: `${cat.color}30` } as CSSProperties}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem', marginBottom: '.5rem' }}>
                 <span style={{ width: 10, height: 10, borderRadius: '50%', background: cat.color, flexShrink: 0, display: 'inline-block' }} />
-                <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, color: cat.color, fontSize: '.9rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontWeight: 600, color: 'var(--accent-ink)', fontSize: '.9rem' }}>
                   {cat.name}
                 </span>
-                <span style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', color: cat.color, fontSize: '.8rem', opacity: .75 }}>
+                <span className="cat-pali" style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', color: 'var(--accent-ink)', fontSize: '.8rem' }}>
                   {cat.pali}
                 </span>
               </div>
@@ -284,7 +284,7 @@ function ExploreSection() {
                   style={{
                     display: 'block', width: '100%', textAlign: 'left',
                     padding: '.3rem .5rem', borderRadius: 3, fontSize: '.8rem',
-                    color: selected?.id === p.id ? 'var(--palm)' : 'rgba(243,236,221,.75)',
+                    color: selected?.id === p.id ? 'var(--palm)' : 'rgba(var(--text-rgb),.75)',
                     background: selected?.id === p.id ? `${cat.color}20` : 'transparent',
                     marginBottom: '.2rem',
                   }}
@@ -347,7 +347,7 @@ function AggregatesSection() {
       </div>
       <div className="katannuta-bonus">
         <div className="katannuta-label">Nota adicional</div>
-        <p style={{ fontSize: '.9rem', lineHeight: 1.75, color: 'rgba(243,236,221,.85)' }}>
+        <p style={{ fontSize: '.9rem', lineHeight: 1.75, color: 'rgba(var(--text-rgb),.85)' }}>
           El Buda no enseñó que no existimos —enseñó que lo que somos es <em>proceso</em>, no cosa; <em>relación</em>, no esencia. La pregunta "¿quién soy yo?" recibe una respuesta práctica: eres este fluir de rūpa, vedanā, saññā, saṅkhāra y viññāṇa, momento a momento. Sin eje fijo.
         </p>
       </div>
@@ -377,7 +377,7 @@ function LakshanasSection() {
         <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '.85rem', color: 'var(--gold)', marginBottom: '.75rem', letterSpacing: '.06em' }}>
           Interdependencia entre los tres lakshaṇas
         </h3>
-        <p style={{ fontSize: '.88rem', lineHeight: 1.75, color: 'rgba(243,236,221,.82)' }}>
+        <p style={{ fontSize: '.88rem', lineHeight: 1.75, color: 'rgba(var(--text-rgb),.82)' }}>
           Las tres marcas se implican mutuamente: porque todo es impermanente (anicca), todo es insatisfactorio (dukkha); porque es insatisfactorio no puede ser un yo sólido (anattā); y porque no hay yo sólido, no puede haber permanencia real. Ver cualquiera de las tres en profundidad conduce a ver las otras dos.
         </p>
       </div>
@@ -429,9 +429,9 @@ function PatticcaSection() {
                 <span style={{ fontFamily: 'var(--font-serif)', fontSize: '.88rem', color: 'var(--gold)', fontWeight: 600 }}>{l.pali}</span>
                 <span style={{ fontSize: '.8rem', color: 'var(--muted)', fontStyle: 'italic' }}>{l.spa}</span>
               </div>
-              <p style={{ fontSize: '.86rem', lineHeight: 1.7, color: 'rgba(243,236,221,.82)' }}>{l.desc}</p>
+              <p style={{ fontSize: '.86rem', lineHeight: 1.7, color: 'rgba(var(--text-rgb),.82)' }}>{l.desc}</p>
               {l.n < 12 && (
-                <div style={{ marginTop: '.4rem', fontSize: '.72rem', color: 'var(--gold)', opacity: .5 }}>
+                <div className="paticca-arrow">
                   ↓ condiciona ·
                 </div>
               )}
@@ -490,8 +490,8 @@ function JhanaCard({ jhana }: { jhana: typeof JHANAS[0] }) {
       <p className="jhana-desc">{jhana.shortDesc}</p>
       <p className="jhana-analogy">Analogía: {jhana.analogy}</p>
       <button
+        className="jhana-toggle"
         onClick={() => setOpen(o => !o)}
-        style={{ marginTop: '.75rem', fontSize: '.72rem', color: 'var(--gold)', opacity: .7, letterSpacing: '.08em' }}
       >
         {open ? '▲ ocultar factores' : '▼ ver factores'}
       </button>
@@ -580,13 +580,13 @@ function TraditionsSection() {
               {row.topic}
             </h3>
             <div style={{ display: 'grid', gap: '.75rem', gridTemplateColumns: '1fr 1fr' }}>
-              <div>
-                <div style={{ fontSize: '.62rem', letterSpacing: '.15em', textTransform: 'uppercase', color: '#c8632a', marginBottom: '.3rem', fontFamily: 'var(--font-serif)' }}>Theravāda</div>
-                <p style={{ fontSize: '.82rem', lineHeight: 1.65, color: 'rgba(243,236,221,.82)' }}>{row.theravada}</p>
+              <div className="trad-col" style={{ '--cat-color': '#c8632a' } as CSSProperties}>
+                <div className="trad-label">Theravāda</div>
+                <p style={{ fontSize: '.82rem', lineHeight: 1.65, color: 'rgba(var(--text-rgb),.82)' }}>{row.theravada}</p>
               </div>
-              <div>
-                <div style={{ fontSize: '.62rem', letterSpacing: '.15em', textTransform: 'uppercase', color: '#7b5ea7', marginBottom: '.3rem', fontFamily: 'var(--font-serif)' }}>Mahāyāna</div>
-                <p style={{ fontSize: '.82rem', lineHeight: 1.65, color: 'rgba(243,236,221,.82)' }}>{row.mahayana}</p>
+              <div className="trad-col" style={{ '--cat-color': '#7b5ea7' } as CSSProperties}>
+                <div className="trad-label">Mahāyāna</div>
+                <p style={{ fontSize: '.82rem', lineHeight: 1.65, color: 'rgba(var(--text-rgb),.82)' }}>{row.mahayana}</p>
               </div>
             </div>
           </div>
@@ -653,7 +653,7 @@ function ConnectionMap({ onNavigate }: { onNavigate: (key: string) => void }) {
                   markerEnd="url(#arrowhead)"
                   strokeDasharray="3 3"
                 />
-                <text x={mx} y={my - 5} textAnchor="middle" fontSize="7" fill="rgba(201,162,39,.5)">
+                <text x={mx} y={my - 5} textAnchor="middle" fontSize="8" className="edge-label">
                   {e.label}
                 </text>
               </g>
@@ -661,12 +661,12 @@ function ConnectionMap({ onNavigate }: { onNavigate: (key: string) => void }) {
           })}
 
           {MAP_NODES.map(n => (
-            <g key={n.id} style={{ cursor: 'pointer' }} onClick={() => onNavigate(n.module)}>
+            <g key={n.id} className="map-node" style={{ cursor: 'pointer', '--cat-color': n.color } as CSSProperties} onClick={() => onNavigate(n.module)}>
               <circle cx={n.x} cy={n.y} r={26} fill={`${n.color}20`} stroke={n.color} strokeWidth="1" strokeOpacity=".6" />
-              <text x={n.x} y={n.y - 5} textAnchor="middle" dominantBaseline="middle" fontSize="8.5" fontWeight="600" fill={n.color}>
+              <text x={n.x} y={n.y - 5} textAnchor="middle" dominantBaseline="middle" fontSize="8.5" fontWeight="600" fill="var(--accent-ink)">
                 {n.label.split('/')[0]}
               </text>
-              <text x={n.x} y={n.y + 9} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" fill="rgba(243,236,221,.45)" fontStyle="italic">
+              <text x={n.x} y={n.y + 9} textAnchor="middle" dominantBaseline="middle" fontSize="6.5" className="node-sub" fill="rgba(var(--text-rgb),.72)" fontStyle="italic">
                 {n.sub}
               </text>
             </g>
